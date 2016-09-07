@@ -16,7 +16,7 @@
 PHP_BIN=/opt/php5/bin/php
 
 #代码根目录
-SERVER_PATH=/www/swooleServer
+SERVER_PATH=/www/bestdo/swooleServer
 
 getMasterPid()
 {

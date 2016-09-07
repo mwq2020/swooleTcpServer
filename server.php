@@ -6,7 +6,6 @@ error_reporting(E_ALL | E_STRICT);
 class WebSocketServer
 {
     public static $instance;
-    private $application;
     public $logDir = '/tmp/swoole.log';
     public function __construct() 
     {
@@ -24,7 +23,7 @@ class WebSocketServer
 
         $server->on('start',array($this,'onStart'));
         $server->on('managerStart',array($this,'onManagerStart'));
-        $server->on('WorkerStart',array($this,'onWorkerStart'));
+        $server->on('workerStart',array($this,'onWorkerStart'));
         $server->on('connect',array($this,'onConnect'));
         $server->on('receive',array($this,'onReceive'));
         $server->on('close',array($this,'onClose'));
@@ -90,40 +89,14 @@ class WebSocketServer
     //关闭链接时回调
     public function onClose($server,$fd)
     {
-        /*
-        $errors = error_get_last();
-        if($errors && ($errors['type'] === E_ERROR ||
-                $errors['type'] === E_PARSE ||
-                $errors['type'] === E_CORE_ERROR ||
-                $errors['type'] === E_COMPILE_ERROR ||
-                $errors['type'] === E_RECOVERABLE_ERROR)
-        ){
-            $data = array('code'=>500,'flag'=>false, 'msg'=>$errors['message'], 'data'=>$errors);
-            $server->send($fd, json_encode($data));
-            $server->close($fd);
-        }
-        */
-
         file_put_contents($this->logDir,"\r\n onClose: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
     }
 
     //开启task进程【设置进程的名称】
     public function onWorkerError($server,$fd,$worker_pid,$exit_code)
     {
-        $errors = $server->getLastError();
-        //$data = func_get_args();
-        //unset($data[0]);
-        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')."---".print_r($errors,true)." \r\n",FILE_APPEND);
+        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
     }
-
-    //开启task进程【设置进程的名称】
-    /*
-    public function onShutdown($server,$fd)
-    {
-        $errors = error_get_last();
-        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')."---".print_r($errors,true)." \r\n",FILE_APPEND);
-    }
-    */
 
     //开启master主进程【设置进程的名称】
     public function onStart($server)
@@ -142,55 +115,11 @@ class WebSocketServer
     //开启worker进程【设置进程的名称】
     public function onWorkerStart($server,$fd)
     {
-
-        $errors = error_get_last();
-        /*
-        if(!empty($errors) && ($errors['type'] === E_ERROR ||
-                $errors['type'] === E_PARSE ||
-                $errors['type'] === E_CORE_ERROR ||
-                $errors['type'] === E_COMPILE_ERROR ||
-                $errors['type'] === E_RECOVERABLE_ERROR)
-        ){
-            $data = array('code'=>500,'flag'=>false, 'msg'=>$errors['message'], 'data'=>$errors);
-            $server->send($fd, json_encode($data));
-            $server->close($fd);
-        }
-        */
-        //$errors = $server->getLastError();
-        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')."---".print_r($errors,true)." \r\n",FILE_APPEND);
+        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
         swoole_set_process_name('running worker swoole bestdo  server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
-
-    /*
-    //进程结束的时候调用
-    public function onFinish()
-    {
-
-    }
-
-    //master和worker都有此回调定时处理器
-    public function onTimer()
-    {
-
-    }
-
-    //主进程结束时
-    public function onMasterClose()
-    {
-
-    }
-    */
-
-    //开启单例模式
-    public static function getInstance() 
-    {
-        if (!self::$instance) {
-            self::$instance = new WebSocketServer;
-        }
-        return self::$instance;
-    }
-
+    //当tcpworker进程处理崩溃的时候出发
     public function handleFatalError($server,$fd)
     {
         $error = error_get_last();
@@ -232,16 +161,51 @@ class WebSocketServer
                     {
                         $log .= '[QUERY] ' . $_SERVER['REQUEST_URI'];
                     }
-                    //error_log($log);
                     $data = array('code'=>500, 'flag'=>false, 'msg'=>$log, 'data'=>'');
                     $server->send($fd, json_encode($data));
                     $server->close($fd);
                     file_put_contents($this->logDir,"\r\n handleFatalError: ".date('Y-m-d H:i:s')." \r\n".$log."\r\n",FILE_APPEND);
-                    //$serv->send($this->currentFd, $log);
                 default:
                     break;
             }
         }
+    }
+
+    /*
+
+    //开启task进程【设置进程的名称】
+    public function onShutdown($server,$fd)
+    {
+        $errors = error_get_last();
+        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')."---".print_r($errors,true)." \r\n",FILE_APPEND);
+    }
+
+    //进程结束的时候调用
+    public function onFinish()
+    {
+
+    }
+
+    //master和worker都有此回调定时处理器
+    public function onTimer()
+    {
+
+    }
+
+    //主进程结束时
+    public function onMasterClose()
+    {
+
+    }
+    */
+
+    //开启单例模式
+    public static function getInstance() 
+    {
+        if (!self::$instance) {
+            self::$instance = new WebSocketServer;
+        }
+        return self::$instance;
     }
 
 }
