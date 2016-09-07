@@ -5,7 +5,6 @@ class Test extends Base
 {
     public function testEcho($id,$name,$page)
     {
-        //asdfadfafad
         $data = func_get_args();
         $data['time'] = time();
         return $data;

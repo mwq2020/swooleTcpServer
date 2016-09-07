@@ -74,7 +74,7 @@ class WebSocketServer
         catch(\Exception $e)
         {
             // 发送数据给客户端，发生异常，调用失败
-            $code = $e->getCode() == 200 ? 200-1 : ($e->getCode() ? $e->getCode() : 500);
+            $code = $e->getCode() == 200 ? 2001 : ($e->getCode() ? $e->getCode() : 500);
             $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>$e->getMessage(), 'data'=>$e);
         }
         return $ret_data;
@@ -136,39 +136,36 @@ class WebSocketServer
                     $line = $error['line'];
                     $log = "$message ($file:$line)\nStack trace:\n";
                     $trace = debug_backtrace();
-                    foreach ($trace as $i => $t)
-                    {
-                        if (!isset($t['file']))
-                        {
+                    foreach ($trace as $i => $t){
+                        if (!isset($t['file'])){
                             $t['file'] = 'unknown';
                         }
-                        if (!isset($t['line']))
-                        {
+                        if (!isset($t['line'])){
                             $t['line'] = 0;
                         }
-                        if (!isset($t['function']))
-                        {
+                        if (!isset($t['function'])){
                             $t['function'] = 'unknown';
                         }
                         $log .= "#$i {$t['file']}({$t['line']}): ";
-                        if (isset($t['object']) and is_object($t['object']))
-                        {
+                        if (isset($t['object']) and is_object($t['object'])){
                             $log .= get_class($t['object']) . '->';
                         }
                         $log .= "{$t['function']}()\n";
                     }
-                    if (isset($_SERVER['REQUEST_URI']))
-                    {
+                    if (isset($_SERVER['REQUEST_URI'])){
                         $log .= '[QUERY] ' . $_SERVER['REQUEST_URI'];
                     }
+                    file_put_contents($this->logDir,"\r\n handleFatalError: ".date('Y-m-d H:i:s')." \r\n".$log."\r\n",FILE_APPEND);
+
                     $data = array('code'=>500, 'flag'=>false, 'msg'=>$log, 'data'=>'');
                     $server->send($fd, json_encode($data));
                     $server->close($fd);
-                    file_put_contents($this->logDir,"\r\n handleFatalError: ".date('Y-m-d H:i:s')." \r\n".$log."\r\n",FILE_APPEND);
+                    //break;
                 default:
                     break;
             }
         }
+        file_put_contents($this->logDir,"\r\n register_shutdown_function: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
     }
 
     /*

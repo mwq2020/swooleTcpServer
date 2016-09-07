@@ -15,14 +15,14 @@ class WebSocketClient
     {
         include_once __DIR__.'/Vendor/Bootstrap/Autoloader.php';
         \Bootstrap\Autoloader::instance()->addRoot(__DIR__.'/')->init();
-        $client = new swoole_client(SWOOLE_SOCK_TCP);
+        //$client = new swoole_client(SWOOLE_SOCK_TCP);
         //$client = new swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_ASYNC);
         //$client->on('connect',array($this,'onConnect'));
         //$client->on('receive',array($this,'onReceive'));
 
         //$client->on('error',array($this,'onError'));
         //$client->on('close',array($this,'onClose'));
-        $this->swoole_clinet = $client;
+        //$this->swoole_clinet = $client;
         return $this;
     }
 
@@ -30,7 +30,8 @@ class WebSocketClient
     {
         $receiveData = null;
         try {
-            $client = $this->swoole_clinet;
+            //$client = $this->swoole_clinet;
+            $client = new swoole_client(SWOOLE_SOCK_TCP);
             if (!$client->connect('127.0.0.1', 7000, -1))
             {
                 throw new Exception("connect failed. Error: {$client->errCode}");
@@ -100,7 +101,9 @@ $params['a'] = 'hello word!';
 $params['b'] = 'mwq test';
 $params['c'] = time();
 
-$res  = WebSocketClient::getInstance()->setClassName('Test')->testEcho($params);
+$res  = WebSocketClient::getInstance()->setClassName('Test')->testEcho($params,'aaaa','ccccc');
+print_r(json_decode($res,true));
+$res  = WebSocketClient::getInstance()->setClassName('Test')->testDb();
 print_r(json_decode($res,true));
 exit;
 

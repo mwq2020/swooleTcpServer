@@ -13,10 +13,11 @@
 
 #php路径，如不知道在哪，可以用whereis php尝试
 #PHP_BIN=/usr/bin/php
-PHP_BIN=/opt/php5/bin/php
+#PHP_BIN=/opt/php5/bin/php
+PHP_BIN=php
 
 #代码根目录
-SERVER_PATH=/www/bestdo/swooleServer
+SERVER_PATH=/www/bestdo/swooleTcpServer
 
 getMasterPid()
 {
