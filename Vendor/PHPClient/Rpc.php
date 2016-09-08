@@ -35,7 +35,7 @@ class Rpc
             if(empty($receiveData)){
                 throw new \Exception('数据解析失败');
             }
-            if($receiveData['flag'] === false || $receiveData['code'] != 200){
+            if($receiveData['flag'] == false || $receiveData['code'] != 200){
                 throw new \Exception($receiveData['msg']);
             }
         } catch (\Exception $e){

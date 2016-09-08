@@ -3,6 +3,7 @@ namespace Model;
 
 class Test extends Base
 {
+
     public function testEcho($id,$name,$page)
     {
         $data = func_get_args();
