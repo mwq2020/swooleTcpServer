@@ -19,7 +19,7 @@ class Rpc
         $receiveData = null;
         try {
             //$client = $this->swoole_clinet;
-            $client = new swoole_client(SWOOLE_SOCK_TCP);
+            $client = new \swoole_client(SWOOLE_SOCK_TCP);
             if (!$client->connect('127.0.0.1', 7000, -1))
             {
                 throw new Exception("connect failed. Error: {$client->errCode}");
