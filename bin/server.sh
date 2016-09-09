@@ -51,11 +51,13 @@ case "$1" in
                 fi
                 echo "shutting down server "
 
-                kill $PID #杀掉worker进程
+                kill -9 $PID #杀掉master进程
 
                 MID=`getManagerPid`
-                kill -9 $MID #杀掉主进程
+                kill -9 $MID #杀掉管理主进程
                 echo " done"
+
+                ps -ef | grep swoole|grep worker|awk '{print $2}'| xargs kill -9
         ;;
 
         status)

@@ -16,7 +16,7 @@ class WebSocketServer
         $server->set(
             array(
                 'worker_num'    => 2,   //工作进程数量
-                'max_request'   => 4, //多少次调用后再重启新的进程
+                'max_request'   => 10, //多少次调用后再重启新的进程
                 'daemonize' => true
             )
         );
