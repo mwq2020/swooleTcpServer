@@ -40,11 +40,11 @@ class Rpc
             }
 
             if(empty($receiveData['flag']) || $receiveData['code'] != 200){
-                throw new \Exception(intval($receiveData['msg']));
+                throw new \Exception($receiveData['msg']);
             }
         } catch (\Exception $e){
             $error_msg = 'request:'.json_encode(array('class'=>$this->className,'method'=>$method,'params'=>$arguments))."\r\n";
-            $error_msg .= date('Y-m-d H:i:s').' error info:'.$e->getMessage()."\r\n";
+            $error_msg .= date('Y-m-d H:i:s').'  error message info :'.$e->getMessage()."\r\n";
             file_put_contents($this->logDir,$error_msg,FILE_APPEND);
             if(self::$autoException){
                 throw new \Exception($e);
