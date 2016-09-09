@@ -64,14 +64,12 @@ class Autoloader{
      */
     public function loadByNamespace($name)
     {
-        $enviroment = isset($_SERVER['RUNTIME_ENVIROMENT']) ? $_SERVER['RUNTIME_ENVIROMENT'] : 'online';
-
         $classPath = str_replace('\\', DIRECTORY_SEPARATOR ,$name);
 
         foreach(static::$sysRoot as $k => $root)
         {
             $classFile = $root.$classPath.'.php';
-            file_put_contents('/tmp/swoole.log',"\r\n".$classFile."\r\n",FILE_APPEND);
+            file_put_contents('/tmp/autoload.log',"\r\n".$classFile."\r\n",FILE_APPEND);
             if(is_file($classFile))
             {
                 require_once($classFile);

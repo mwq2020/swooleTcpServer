@@ -8,12 +8,15 @@ include_once __DIR__.'/Vendor/Bootstrap/Autoloader.php';
 //$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testDb();
 //print_r($res);
 
-$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testEcho('a','b','c');
+//$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testEcho('a','b','c');
+//print_r($res);
+//
+//$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testDb();
+//print_r($res);
+
+$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testException();
 print_r($res);
 
-$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testDb();
-print_r($res);
-exit;
 
 
 

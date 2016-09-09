@@ -15,5 +15,9 @@ class Test
        return $obj->testDb($id);
     }
 
+    public function testException()
+    {
+        return \Model\Test::instance()->testException();
+    }
 
 }

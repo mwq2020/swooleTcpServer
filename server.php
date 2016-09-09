@@ -15,8 +15,8 @@ class WebSocketServer
         $server = new swoole_server("0.0.0.0", 7000);
         $server->set(
             array(
-                'worker_num'    => 1,   //工作进程数量
-                'max_request'   => 1, //多少次调用后再重启新的进程
+                'worker_num'    => 2,   //工作进程数量
+                'max_request'   => 4, //多少次调用后再重启新的进程
                 'daemonize' => true
             )
         );

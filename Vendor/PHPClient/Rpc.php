@@ -4,6 +4,7 @@ namespace PHPClient;
 class Rpc
 {
     public static $instance;
+    public static $autoException;
     public $logDir = '/tmp/rpc_client.log';
 
     public $configName; //要访问的服务名
@@ -24,7 +25,7 @@ class Rpc
             $client = new \swoole_client(SWOOLE_SOCK_TCP);
             if (!$client->connect($uriAddress['host'],$uriAddress['port'] , -1))
             {
-                throw new Exception("connect failed. Error: {$client->errCode}");
+                throw new \Exception("connect failed. Error: {$client->errCode}");
             }
             $sendData = array('class'=>$this->className,'method'=>$method,'param_array'=>$arguments);
             $client->send(json_encode($sendData));
@@ -34,19 +35,22 @@ class Rpc
                 throw new \Exception('数据为空');
             }
             $receiveData = json_decode($receiveData,true);
-            if(empty($receiveData)){
+            if(!is_array($receiveData)){
                 throw new \Exception('数据解析失败');
             }
-            if($receiveData['flag'] == false || $receiveData['code'] != 200){
-                throw new \Exception($receiveData['msg']);
+
+            if(empty($receiveData['flag']) || $receiveData['code'] != 200){
+                throw new \Exception(intval($receiveData['msg']));
             }
         } catch (\Exception $e){
             $error_msg = 'request:'.json_encode(array('class'=>$this->className,'method'=>$method,'params'=>$arguments))."\r\n";
             $error_msg .= date('Y-m-d H:i:s').' error info:'.$e->getMessage()."\r\n";
             file_put_contents($this->logDir,$error_msg,FILE_APPEND);
-            throw new \Exception($e);
+            if(self::$autoException){
+                throw new \Exception($e);
+            }
         }
-        return $receiveData['data'];
+        return $receiveData;
     }
 
 
@@ -81,11 +85,14 @@ class Rpc
     }
 
     //开启单例模式
-    public static function getInstance($configName)
+    public static function getInstance($configName,$autoException=false)
     {
         if(empty($configName)){
             throw new \Exception('configName 不能为空');
         }
+        //是否自动抛出异常
+        self::$autoException = $autoException;
+
         if (!self::$instance[$configName]) {
             self::$instance[$configName] = new Rpc($configName);
         }

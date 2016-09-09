@@ -23,5 +23,9 @@ class Test extends Base
         return $info;
     }
 
+    public function testException()
+    {
+        throw new \Exception('fff');
+    }
 
 }
