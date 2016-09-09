@@ -5,12 +5,14 @@ class Rpc
 {
     public static $instance;
     public $logDir = '/tmp/rpc_client.log';
-    public $swoole_clinet;
-    public $className;
-    public function __construct()
+
+    public $configName; //要访问的服务名
+    public $className;   //要访问的类名
+    public $allConfig;
+
+    public function __construct($configName)
     {
-        //$client = new swoole_client(SWOOLE_SOCK_TCP);
-        //$this->swoole_clinet = $client;
+        $this->configName = $configName;
         return $this;
     }
 
@@ -18,9 +20,9 @@ class Rpc
     {
         $receiveData = null;
         try {
-            //$client = $this->swoole_clinet;
+            $uriAddress = HostSwitch::getInstance($this->configName)->getOneUsableAddress();
             $client = new \swoole_client(SWOOLE_SOCK_TCP);
-            if (!$client->connect('127.0.0.1', 7000, -1))
+            if (!$client->connect($uriAddress['host'],$uriAddress['port'] , -1))
             {
                 throw new Exception("connect failed. Error: {$client->errCode}");
             }
@@ -79,12 +81,15 @@ class Rpc
     }
 
     //开启单例模式
-    public static function getInstance()
+    public static function getInstance($configName)
     {
-        if (!self::$instance) {
-            self::$instance = new Rpc;
+        if(empty($configName)){
+            throw new \Exception('configName 不能为空');
         }
-        return self::$instance;
+        if (!self::$instance[$configName]) {
+            self::$instance[$configName] = new Rpc($configName);
+        }
+        return self::$instance[$configName];
     }
 
     //设置调用的类名
