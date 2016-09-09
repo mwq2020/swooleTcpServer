@@ -21,14 +21,13 @@ SERVER_PATH=/www/bestdo/swooleTcpServer
 
 getMasterPid()
 {
-    PID=`/bin/ps axu|grep server|grep swoole|awk '{print $2}'`
+    PID=`/bin/ps axu|grep server|grep swoole|grep master|awk '{print $2}'`
     echo $PID
 }
 
 getManagerPid()
 {
-    #MID=`/bin/ps axu|grep init|grep service|grep manager|awk '{print $2}'`
-    MID=`/bin/ps axu|grep server|grep swoole|grep master|awk '{print $2}'`
+    MID=`/bin/ps axu|grep server|grep swoole|grep manager|awk '{print $2}'`
     echo $MID
 }
 case "$1" in

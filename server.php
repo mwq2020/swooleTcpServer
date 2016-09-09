@@ -102,7 +102,7 @@ class WebSocketServer
     public function onStart($server)
     {
         file_put_contents($this->logDir,"\r\n onStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
-        swoole_set_process_name('master swoole bestdo server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
+        swoole_set_process_name('running master swoole bestdo server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
     //开启task进程【设置进程的名称】
