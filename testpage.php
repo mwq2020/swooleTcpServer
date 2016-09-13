@@ -5,7 +5,8 @@ class HttpServer
     public static $instance;
     public $http;
     public $logDir = '/tmp/test.log';
-    public function __construct() {
+    public function __construct()
+    {
         $http = new swoole_http_server("0.0.0.0", 2020);
         $http->set(
             array(
@@ -21,22 +22,25 @@ class HttpServer
         $http->on('workerStart',array($this,'onWorkerStart'));
         $http->start();
     }
-    public function onRequest($request,$response) {
-        $response->status('300');
-        $ser=$request->server;
-        $hea= $request->header;
 
-        //$hea['host']=str_replace(':9501','',$hea['host']);//如果端口号是80，就不用要此句代码
+    /**
+     * 链接进来时的处理
+     * @param $request
+     * @param $response
+     */
+    public function onRequest($request,$response)
+    {
+        include_once __DIR__.'/Vendor/Bootstrap/Autoloader.php';
+        \Bootstrap\Autoloader::instance()->addRoot(__DIR__.'/')->init();
+
+        $header= $request->header;
         ob_start();
         try {
-            echo "<pre>";
-            echo "fffffffffff<br>";
-            print_r($ser);
-            print_r($hea);
-            echo "this is a test page";
-
+            print_r($header);
+            \Test\Models\Common::instance()->dealRequest($request->server);
+            $response->status('200');
         } catch (\Exception $e ) {
-
+            $response->status('500');
         }
         $result = ob_get_contents();
         ob_end_clean();
@@ -64,11 +68,13 @@ class HttpServer
         swoole_set_process_name('running worker swoole test server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
-    public static function getInstance() {
+    public static function getInstance()
+    {
         if (!self::$instance) {
             self::$instance = new HttpServer;
         }
         return self::$instance;
     }
 }
+
 HttpServer::getInstance();
