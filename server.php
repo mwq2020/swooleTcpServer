@@ -209,4 +209,5 @@ class WebSocketServer
 WebSocketServer::getInstance();
 
 
+//   $serv->reload() 可以用内置的方法刷新进程，达到热更新
 
