@@ -6,6 +6,7 @@ error_reporting(E_ALL | E_STRICT);
 class WebSocketServer
 {
     public static $instance;
+    public $serverObj = null;
     public $logDir = '/tmp/swoole.log';
     public function __construct() 
     {
@@ -26,14 +27,25 @@ class WebSocketServer
         $server->on('close',array($this,'onClose'));
         //$server->on('Shutdown',array($this,'onShutdown'));
         $server->on('workerError',array($this,'onWorkerError'));
+        $this->serverObj = $server;
         $server->start();
+
     }
 
     public function onReceive($server,$fd,$from_id,$data)
     {
         register_shutdown_function(array($this,'handleFatalError'),$server,$fd);
 
-        file_put_contents($this->logDir,"\r\n onReceive: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        file_put_contents($this->logDir,"\r\n onReceive: ".date('Y-m-d H:i:s').var_export($data,true)."\r\n",FILE_APPEND);
+        if(trim($data) == 'stats'){
+            $stats = $this->getServiceStat();
+            return $server->send($fd,$stats);
+        } elseif(trim($data) == 'help') {
+            return $server->send($fd,"youcan use  stats|help|quit \r\n");
+            //$server->close($fd);
+        } elseif(trim($data) == 'quit') {
+            $server->close($fd);
+        }
         $data = $this->dealRequest($data);
         $server->send($fd, json_encode($data));
         $server->close($fd);
@@ -194,6 +206,24 @@ class WebSocketServer
 
     }
     */
+
+    public function getServiceStat()
+    {
+        $statusStr = '';
+        if($this->serverObj){
+            $stats = $this->serverObj->stats();
+            if($stats){
+                $statusStr .= '服务开启时间:'.date("Y-m-d H:i:s",$stats['start_time'])."\r\n";
+                $statusStr .= '当前链接数 :'.$stats['connection_num']."\r\n";
+                $statusStr .= '接受链接总数  :'.$stats['accept_count']."\r\n";
+                $statusStr .= '已关闭链接总数:'.$stats['close_count']."\r\n";
+                $statusStr .= '排队任务数量:'.$stats['tasking_num']."\r\n";
+            }
+        } else {
+            $statusStr = "service is not running? \r\n";
+        }
+        return $statusStr;
+    }
 
     //开启单例模式
     public static function getInstance() 

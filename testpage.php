@@ -30,13 +30,17 @@ class HttpServer
      */
     public function onRequest($request,$response)
     {
+        register_shutdown_function(array($this,'handleFatalError'),$request,$response);
+
         include_once __DIR__.'/Vendor/Bootstrap/Autoloader.php';
         \Bootstrap\Autoloader::instance()->addRoot(__DIR__.'/')->init();
 
         $header= $request->header;
         ob_start();
         try {
+            echo "<pre>";
             print_r($header);
+            print_r($request->server);
             \Test\Models\Common::instance()->dealRequest($request->server);
             $response->status('200');
         } catch (\Exception $e ) {
@@ -66,6 +70,53 @@ class HttpServer
     {
         file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
         swoole_set_process_name('running worker swoole test server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
+    }
+
+    //当tcpworker进程处理崩溃的时候出发
+    public function handleFatalError($request,$response)
+    {
+        $error = error_get_last();
+        if (isset($error['type']))
+        {
+            switch ($error['type'])
+            {
+                case E_ERROR :
+                case E_PARSE :
+                case E_CORE_ERROR :
+                case E_COMPILE_ERROR :
+                    $message = $error['message'];
+                    $file = $error['file'];
+                    $line = $error['line'];
+                    $log = "$message ($file:$line)\nStack trace:\n";
+                    $trace = debug_backtrace();
+                    foreach ($trace as $i => $t){
+                        if (!isset($t['file'])){
+                            $t['file'] = 'unknown';
+                        }
+                        if (!isset($t['line'])){
+                            $t['line'] = 0;
+                        }
+                        if (!isset($t['function'])){
+                            $t['function'] = 'unknown';
+                        }
+                        $log .= "#$i {$t['file']}({$t['line']}): ";
+                        if (isset($t['object']) and is_object($t['object'])){
+                            $log .= get_class($t['object']) . '->';
+                        }
+                        $log .= "{$t['function']}()\n";
+                    }
+                    if (isset($_SERVER['REQUEST_URI'])){
+                        $log .= '[QUERY] ' . $_SERVER['REQUEST_URI'];
+                    }
+                    file_put_contents($this->logDir,"\r\n handleFatalError: ".date('Y-m-d H:i:s')." \r\n".$log."\r\n",FILE_APPEND);
+                    $response->status(500);
+                    $response->end($log);
+                break;
+                default:
+                    break;
+            }
+        }
+        file_put_contents($this->logDir,"\r\n register_shutdown_function: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
     }
 
     public static function getInstance()
