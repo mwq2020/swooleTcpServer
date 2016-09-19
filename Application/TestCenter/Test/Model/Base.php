@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Models;
+namespace Test\Model;
 
 
 /**

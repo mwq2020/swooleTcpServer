@@ -14,11 +14,12 @@ class Autoloader{
     protected static $sysRoot = array();
     protected static $instance;
     protected $classPrefixes = array();
+    protected $logRoot = '/tmp/autoload.log'; //自动加载日志目录
     protected function __construct()
     {
         static::$sysRoot = array(
             //默认的项目根目录
-            __DIR__.'/../../',
+            //__DIR__.'/../../',
             // Vendor目录
             __DIR__.'/../'
         );
@@ -69,7 +70,7 @@ class Autoloader{
         foreach(static::$sysRoot as $k => $root)
         {
             $classFile = $root.$classPath.'.php';
-            file_put_contents('/tmp/autoload.log',"\r\n".$classFile."\r\n",FILE_APPEND);
+            file_put_contents($this->logRoot, "\r\n".$classFile."\r\n", FILE_APPEND);
             if(is_file($classFile))
             {
                 require_once($classFile);
@@ -78,7 +79,9 @@ class Autoloader{
                 }
             }
             else
-            {// 对thrift provider文件的支持
+            {
+                /*
+                // 对thrift provider文件的支持
                 $interfaceStr = substr($name, strlen($name)-2);
                 if(strpos($name, 'Provider\\') === 0 && $interfaceStr === 'If')
                 {
@@ -89,6 +92,7 @@ class Autoloader{
                         return true;
                     }
                 }
+                */
             }
         }
 

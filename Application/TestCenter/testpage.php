@@ -5,6 +5,7 @@ class HttpServer
     public static $instance;
     public $http;
     public $logDir = '/tmp/test.log';
+    public $applicationRoot = __DIR__;
     public function __construct()
     {
         $http = new swoole_http_server("0.0.0.0", 2020);
@@ -13,7 +14,7 @@ class HttpServer
                 'worker_num' => 1,
                 'daemonize' => true,
                 'max_request' => 1,
-                'dispatch_mode' => 1
+                //'dispatch_mode' => 1
             )
         );
         $http->on('Request',array($this , 'onRequest'));
@@ -31,23 +32,20 @@ class HttpServer
     public function onRequest($request,$response)
     {
         register_shutdown_function(array($this,'handleFatalError'),$request,$response);
-
-        include_once __DIR__.'/Vendor/Bootstrap/Autoloader.php';
-        \Bootstrap\Autoloader::instance()->addRoot(__DIR__.'/')->init();
-
         $header= $request->header;
         ob_start();
         try {
             echo "<pre>";
             print_r($header);
             print_r($request->server);
-            \Test\Models\Common::instance()->dealRequest($request->server);
+            \Test\Model\Request::instance()->dealRequest($request->server);
             $response->status('200');
+            $result = ob_get_contents();
+            ob_end_clean();
         } catch (\Exception $e ) {
+            $result = $e->getMessage();
             $response->status('500');
         }
-        $result = ob_get_contents();
-        ob_end_clean();
         $response->end($result);
     }
 
@@ -68,6 +66,9 @@ class HttpServer
     //开启worker进程【设置进程的名称】
     public function onWorkerStart($server,$fd)
     {
+        include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
+        \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/../../Vendor/')->init();
+
         file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
         swoole_set_process_name('running worker swoole test server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }

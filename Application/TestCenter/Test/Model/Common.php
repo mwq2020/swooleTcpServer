@@ -1,5 +1,5 @@
 <?php
-namespace Test\Models;
+namespace Test\Model;
 
 class Common extends Base
 {

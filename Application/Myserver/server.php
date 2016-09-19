@@ -8,8 +8,12 @@ class WebSocketServer
     public static $instance;
     public $serverObj = null;
     public $logDir = '/tmp/swoole.log';
+    public $applicationRoot = __DIR__;
+
     public function __construct() 
     {
+        //file_put_contents($this->logDir,"\r\n WebSocketServerRoot: ".date('Y-m-d H:i:s').var_export($this->applicationRoot,true)."\r\n",FILE_APPEND);
+
         $server = new swoole_server("0.0.0.0", 7000);
         $server->set(
             array(
@@ -60,8 +64,8 @@ class WebSocketServer
 
         try
         {
-            include_once __DIR__.'/Vendor/Bootstrap/Autoloader.php';
-            \Bootstrap\Autoloader::instance()->addRoot(__DIR__.'/')->init();
+            //include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
+            //\Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/../../Vendor/')->addRoot($this->applicationRoot.'/../')->init();
 
             $class_name = "\\Handler\\{$class}";
             //判断类存在与否
@@ -124,8 +128,8 @@ class WebSocketServer
     //开启worker进程【设置进程的名称】
     public function onWorkerStart($server,$fd)
     {
-        include_once __DIR__.'/Vendor/Bootstrap/Autoloader.php';
-        \Bootstrap\Autoloader::instance()->addRoot(__DIR__.'/')->init();
+        include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
+        \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/../../Vendor/')->addRoot($this->applicationRoot.'/../')->init();
         file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
         swoole_set_process_name('running worker swoole bestdo  server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }

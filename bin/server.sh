@@ -38,7 +38,7 @@ case "$1" in
                     exit 1
                 fi
                 echo  "starting server "
-                $PHP_BIN $SERVER_PATH/server.php
+                $PHP_BIN $SERVER_PATH/Application/*/server.php
                 echo " done"
         ;;
 
