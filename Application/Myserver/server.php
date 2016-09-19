@@ -129,7 +129,7 @@ class WebSocketServer
     public function onWorkerStart($server,$fd)
     {
         include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
-        \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/../../Vendor/')->addRoot($this->applicationRoot.'/')->init();
+        \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/')->addRoot($this->applicationRoot.'/../../Vendor/')->init();
         file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
         swoole_set_process_name('running worker swoole bestdo  server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
