@@ -1,5 +1,5 @@
 <?php
-namespace Test\Model;
+namespace Model;
 
 class Request extends Base
 {
@@ -10,16 +10,37 @@ class Request extends Base
      * 处理所有的请求分发
      * @param $request_uri
      */
-    public function dealRequest($request)
+    public function dealRequest($request,$response)
     {
         $this->request = parse_str($request['query_string']);
         $this->server = $request;
         $pathInfo = pathinfo($request['request_uri']);
-        if(in_array($pathInfo['extension'],array('css','js','png','git','jpeg','jpg'))){
-            return $this->getStaticFile($request['request_uri']);
+
+        $mimeList = Common::instance()->getMimeTypeList();
+        if(in_array($pathInfo['extension'],array('css','js','png','git','jpeg','jpg','ico'))){
+            //静态文件处理
+            $staticDir = dirname(__DIR__).'/'.ltrim($request['request_uri'], '/');
+            if(!file_exists($staticDir)){
+                $response->status(404);
+                $response->end('');
+            }
+            $stat = stat($staticDir);
+            $modified_time = $stat ? date('D, d M Y H:i:s', $stat['mtime']) . ' GMT' : '';
+
+            $file_size = filesize($staticDir);
+            $mimeContent = $mimeList[$pathInfo['extension']];
+            if($mimeContent){
+                $response->header("Content-Type",$mimeContent);
+            }
+            $response->header('Connection','keep-alive');
+            $response->header('Content-Length',$file_size);
+            $response->status(200);
+            $response->end(file_get_contents($staticDir));
         } else {
-            return $this->processRoute($request['request_uri']);
+            $result = $this->processRoute($request['request_uri']);
+            //$response->end($result);
         }
+        return '';
     }
 
     /**
@@ -44,17 +65,19 @@ class Request extends Base
      */
     public function processRoute($uri)
     {
-        $className = 'Index';
-        $methodName = 'Index';
+        $className = "Index";
+        $methodName = "actionIndex";
         if(empty($uri) || trim($uri) == '/'){
-            $controllerName = "\\Test\\Controller\\{$className}";
+            $controllerName = "\\Controller\\{$className}";
         } else {
-            $uris = explode('/',$uri);
-            $controllerName = "\\Test\\Controller\\{$uris[0]}";
-            $methodName = $uris[1];
+            $uris = explode('/',trim($uri,'/'));
+            $uris[0] = ucfirst($uris[0]);
+            $uris[1] = ucfirst($uris[1]);
+            $controllerName = "\\Controller\\{$uris[0]}";
+            $methodName = "action".$uris[1];
         }
         $controller = new $controllerName;
-        return call_user_func_array(array($controller, $methodName));
+        return call_user_func(array($controller, $methodName));
     }
 
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Controller;
+namespace Controller;
 
 
 /**
@@ -8,7 +8,8 @@ namespace Test\Controller;
  */
 class Base
 {
-    protected static $Instances;
+
+    //protected static $Instances;
 
     /**
      * 获得对象的方法，请使用该方法获得对象 基础model的单例模式.
@@ -16,11 +17,13 @@ class Base
      * @todo 这个方法子类没用且有一个同名方法，会报一个"strict standards"
      * @return static
      */
+    /*
     public static function instance()
     {
         $className = get_called_class();
         return self::InstanceInternal($className);
     }
+    */
 
     /**
      * 获取内部对象的方法.
@@ -29,6 +32,7 @@ class Base
      *
      * @return mixed
      */
+    /*
     protected static function InstanceInternal($className)
     {
         if (!isset( self::$Instances[$className] )) {
@@ -36,5 +40,7 @@ class Base
         }
         return self::$Instances [$className];
     }
+    */
+
 
 }
