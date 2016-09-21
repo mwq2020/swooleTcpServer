@@ -4,11 +4,30 @@ namespace Controller;
 
 class Index extends Base
 {
+
     public function actionIndex()
     {
-        include __DIR__.'/../Views/header.tpl.php';
-        //include __DIR__.'/../Views/'.strtolower(__CLASS__).'/'.strtolower(__FUNCTION__).'.php';
-        include __DIR__.'/../Views/footer.tpl.php';
+        /*
+        echo "<pre>";
+        var_dump($this->controllerName);
+        var_dump($this->request);
+        var_dump($this->templatePath);
+        */
+
+
+        $this->display();
+    }
+
+    public function actionTest()
+    {
+        /*
+        echo "<pre>";
+        var_dump($this->controllerName);
+        var_dump($this->request);
+        var_dump($this->templatePath);
+        */
+
+        $this->display();
     }
 
 }

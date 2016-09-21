@@ -1,6 +1,7 @@
 <?php
 
 namespace Controller;
+use Framework\Template;
 
 
 /**
@@ -8,6 +9,21 @@ namespace Controller;
  */
 class Base
 {
+    public $template;//模板处理类
+    public $controllerName;//控制器名称
+    public $actionName; //方法名称
+    public $request; //方法名称
+    public $useLayout;
+    public $templatePath;
+    public $viewPath;
+
+    public function  __construct()
+    {
+        $this->useLayout = true;
+        $this->template = new \Framework\Template();
+        $this->template->useLayout = true;
+        //$this->template->use_sub_dirs = true;
+    }
 
     //protected static $Instances;
 
@@ -42,5 +58,30 @@ class Base
     }
     */
 
+
+    public function assign($key,$val)
+    {
+        $this->template->assign($key,$val);
+    }
+
+    /**
+     * @param $template
+     */
+    public function display($template='')
+    {
+        $this->template->viewPath = $this->viewPath;
+        $this->template->controllerName = $this->controllerName;
+        $this->template->actionName = $this->actionName;
+        $this->template->useLayout = $this->useLayout;
+        if(!empty($template)){
+            $this->template->templatePath = $template;
+        } else {
+            $this->template->templatePath = $this->templatePath;
+        }
+
+        $this->template->viewPath = $this->viewPath;
+        $this->template->layoutPath = '/layout/layout.php';
+        $this->template->display('index/index.php');
+    }
 
 }

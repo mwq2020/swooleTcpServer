@@ -58,7 +58,7 @@ case "$1" in
                 #kill -9 $MID #杀掉管理主进程
                 echo " done"
 
-                ps -ef | grep swoole|grep bestdo|awk '{print $2}'| xargs kill -9
+                ps -ef | grep swoole|grep bestdo|grep -v grep|awk '{print $2}'| xargs kill -9
         ;;
 
         status)

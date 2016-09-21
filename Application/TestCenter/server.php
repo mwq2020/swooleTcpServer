@@ -37,16 +37,12 @@ class HttpServer
         $header= $request->header;
         ob_start();
         try {
-//            echo "<pre>";
-//            print_r($header);
-//            print_r($request->server);
-//            $mimeList = \Model\Common::instance()->getMimeTypeList();
-//            print_r($mimeList);
-            \Model\Request::instance()->dealRequest($request->server,$response);
+            (new \FrameWork\Controller)->dealRequest($request->server,$response);
             $response->status('200');
             $result = ob_get_contents();
             ob_end_clean();
         } catch (\Exception $e ) {
+            print_r($request->server);
             $result = $e->getMessage();
             $response->status('500');
         }
