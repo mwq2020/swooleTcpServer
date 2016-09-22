@@ -1,14 +1,17 @@
+<?php print_r($request); ?>
+
 <div class="row clearfix">
 
     <!-- 表单区start -->
     <div class="col-md-12 column">
-        <form method="post" action="">
+        <form method="post" action="/index/getresult">
             <div class="col-md-12 column list_item">
                 <span>选择服务项目</span>
                 <select name="rpc_name" id="rpc_name">
-                    <?php if(isset($testConfig['rpc_service']) && !empty($testConfig['rpc_service'])): ?>
-                        <?php foreach($testConfig['rpc_service'] as $key => $row): ?>
-                            <option value="<?php echo $key; ?>" <?php if(isset($_POST['rpc_name']) && $_POST['rpc_name'] == $key){ echo 'selected';}?> ><?php echo $key; ?></option>
+                    <?php if(isset($apiList) && !empty($apiList)): ?>
+                        <option>请选择</option>
+                        <?php foreach($apiList as $key => $row): ?>
+                            <option value="<?php echo $key; ?>" <?php if(isset($requestData['rpc_name']) && $requestData['rpc_name'] == $key){ echo 'selected';}?> ><?php echo $key.' 【'.$row['uri'].'】'; ?></option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
@@ -17,14 +20,14 @@
 
             <div class="col-md-12 column list_item">
                 <span class="list_title">类名</span>
-                <input name="class_name" id="class_name" value="<?php if(isset($_POST['class_name'])){echo $_POST['class_name'];}?>" autocomplete="off" disableautocomplete/> &nbsp;&nbsp;&nbsp;&nbsp;
+                <input name="class_name" id="class_name" value="<?php if(isset($requestData['class_name'])){echo $requestData['class_name'];}?>" autocomplete="off" disableautocomplete/> &nbsp;&nbsp;&nbsp;&nbsp;
                 <span id="search_class">搜索</span>
                 <div id="class_list"> </div>
             </div>
 
             <div class="col-md-12 column list_item">
                 <span class="list_title">方法名</span>
-                <input name="function_name" id="function_name" value="<?php if(isset($_POST['function_name'])){echo $_POST['function_name'];}?>" autocomplete="off" disableautocomplete /> &nbsp;&nbsp;&nbsp;&nbsp;
+                <input name="function_name" id="function_name" value="<?php if(isset($requestData['function_name'])){echo $requestData['function_name'];}?>" autocomplete="off" disableautocomplete /> &nbsp;&nbsp;&nbsp;&nbsp;
                 <span id="search_function">搜索</span>
                 <div id="function_list"> </div>
             </div>
@@ -32,11 +35,11 @@
             <div class="col-md-12 column list_item" id="argv_list">
                 <div class="list_item">
                     <span class="list_title">参数</span>
-                    <input name="argv[]" class="argv_list" value="<?php if(isset($_POST['argv'][0])){ echo $_POST['argv'][0]; }?>"/> <span class="drop_argv_button">【-】</span>
+                    <input name="argv[]" class="argv_list" value="<?php if(isset($requestData['argv'][0])){ echo $requestData['argv'][0]; }?>"/> <span class="drop_argv_button">【-】</span>
                 </div>
 
-                <?php if($_POST && isset($_POST['argv']) && count($_POST['argv']) > 1) : ?>
-                    <?php foreach($_POST['argv'] as $argv_key => $argv_val): ?>
+                <?php if($request && isset($requestData['argv']) && count($requestData['argv']) > 1) : ?>
+                    <?php foreach($requestData['argv'] as $argv_key => $argv_val): ?>
                         <?php if($argv_key == 0){ continue; } ?>
                         <div class="list_item">
                             <span class="list_title">参数</span>
@@ -142,7 +145,6 @@
         })
 
         $('#function_name,#class_name').keydown(function () {
-            //alert('up');
             $('#function_list').hide();
             $('#class_list').hide();
         });
@@ -211,8 +213,8 @@
             var rpc_name = $('#rpc_name').val();
             $.ajax({
                 type: "GET",
-                url: "/",
-                data: "action=get_class&rpc_name="+rpc_name,
+                url: "/index/classlist",
+                data: "rpc_name="+rpc_name,
                 dataType: 'json',
                 success: function(msg){
                     if(msg){

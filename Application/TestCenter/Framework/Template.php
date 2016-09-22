@@ -103,8 +103,9 @@ class Template
      * @param String $tpl
      * @return html
      */
-    public function display($tpl)
+    public function display($tpl = '')
     {
+        $tpl = !empty($tpl) ? $tpl : $this->templatePath;
         echo $this->fetch($tpl);
     }
 

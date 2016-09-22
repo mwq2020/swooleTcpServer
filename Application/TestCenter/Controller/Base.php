@@ -12,17 +12,20 @@ class Base
     public $template;//模板处理类
     public $controllerName;//控制器名称
     public $actionName; //方法名称
-    public $request; //方法名称
+
     public $useLayout;
     public $templatePath;
     public $viewPath;
+
+    public $get;
+    public $post;
+    public $request;
 
     public function  __construct()
     {
         $this->useLayout = true;
         $this->template = new \Framework\Template();
         $this->template->useLayout = true;
-        //$this->template->use_sub_dirs = true;
     }
 
     //protected static $Instances;
@@ -81,7 +84,7 @@ class Base
 
         $this->template->viewPath = $this->viewPath;
         $this->template->layoutPath = '/layout/layout.php';
-        $this->template->display('index/index.php');
+        $this->template->display();
     }
 
 }

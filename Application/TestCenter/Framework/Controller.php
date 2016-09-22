@@ -4,8 +4,12 @@ namespace Framework;
 class Controller
 {
     public $request;
-    public $server;
     public $template;//模板处理类
+
+
+    public $get;
+    public $post;
+    public $server;
 
     /**
      * 处理所有的请求分发
@@ -13,34 +17,47 @@ class Controller
      */
     public function dealRequest($request,$response)
     {
-        parse_str($request['query_string'],$output);
-        $this->request = $output;
-        $this->server = $request;
-        $pathInfo = pathinfo($request['request_uri']);
-        $mimeList = $this->getMimeTypeList();
-        if(in_array($pathInfo['extension'],array('css','js','png','git','jpeg','jpg','ico'))){
-            //静态文件处理
-            $staticDir = dirname(__DIR__).'/'.ltrim($request['request_uri'], '/');
-            if(!file_exists($staticDir)){
-                $response->status(404);
-                $response->end('');
-            }
-            $stat = stat($staticDir);
-            $modified_time = $stat ? date('D, d M Y H:i:s', $stat['mtime']) . ' GMT' : '';
+        $this->get = $request->get;
+        $this->post = $request->post;
+        $this->server = $request->server;
 
-            $file_size = filesize($staticDir);
-            $mimeContent = $mimeList[$pathInfo['extension']];
-            if($mimeContent){
-                $response->header("Content-Type",$mimeContent);
+        //parse_str($request->server['query_string'],$output);
+        //$this->request = $output;
+        //$this->server = $request;
+
+        try{
+            $mimeList = $this->getMimeTypeList();
+            $pathInfo = pathinfo($request->server['request_uri']);
+            if(in_array($pathInfo['extension'],array('css','js','png','git','jpeg','jpg','ico'))){
+                //静态文件处理
+                $staticDir = dirname(__DIR__).'/'.ltrim($request->server['request_uri'], '/');
+                if(!file_exists($staticDir)){
+                    $response->status(404);
+                    return $response->end('');
+                }
+                $stat = stat($staticDir);
+                $modified_time = $stat ? date('D, d M Y H:i:s', $stat['mtime']) . ' GMT' : '';
+
+                $file_size = filesize($staticDir);
+                $mimeContent = $mimeList[$pathInfo['extension']];
+                if($mimeContent){
+                    $response->header("Content-Type",$mimeContent);
+                }
+                $response->header('Connection','keep-alive');
+                $response->header('Content-Length',$file_size);
+                $response->status(200);
+                return $response->end(file_get_contents($staticDir));
+            } else {
+                ob_start();
+                //print_r($request->server);
+                $this->processRoute($request->server['request_uri']);
             }
-            $response->header('Connection','keep-alive');
-            $response->header('Content-Length',$file_size);
-            $response->status(200);
-            $response->end(file_get_contents($staticDir));
-        } else {
-            $this->processRoute($request['request_uri']);
+            $result = ob_get_clean();
+        } catch(\Exception $e){
+            $result = $e->getMessage();
+            $response->status(500);
         }
-        return '';
+        return $response->end($result);
     }
 
     /**
@@ -66,7 +83,7 @@ class Controller
     public function processRoute($uri)
     {
         $className = "Index";
-        $methodName = "actionIndex";
+        $methodName = "Index";
         if(empty($uri) || trim($uri) == '/'){
             $controllerName = "\\Controller\\{$className}";
         } else {
@@ -75,14 +92,19 @@ class Controller
             $uris[1] = ucfirst($uris[1]);
             $className = $uris[0];
             $controllerName = "\\Controller\\{$className}";
-            $methodName = "action".$uris[1];
+            $methodName = $uris[1];
         }
         $controller = new $controllerName;
         $controller->controllerName = $className;
         $controller->actionName = $methodName;
-        $controller->request = $this->request;
-        $controller->templatePath = strtolower($uris[1]).'/'.strtolower($uris[1]).'.php';
+        //$controller->request = $this->request;
+        $controller->templatePath = strtolower($className).'/'.strtolower($methodName).'.php';
         $controller->viewPath = dirname(__DIR__).'/Views/';
+
+        $controller->get = $this->get;
+        $controller->post = $this->post;
+        $controller->request = array_merge((array)$this->get,(array)$this->post);
+        $methodName = "action".$methodName;
         return call_user_func(array($controller, $methodName));
     }
 

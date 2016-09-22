@@ -34,22 +34,16 @@ class HttpServer
     public function onRequest($request,$response)
     {
         register_shutdown_function(array($this,'handleFatalError'),$request,$response);
-        $header= $request->header;
-        ob_start();
         try {
-            (new \FrameWork\Controller)->dealRequest($request->server,$response);
-            $response->status('200');
-            $result = ob_get_contents();
-            ob_end_clean();
+            (new \FrameWork\Controller)->dealRequest($request,$response);
         } catch (\Exception $e ) {
-            print_r($request->server);
             $result = $e->getMessage();
             $response->status('500');
+            $response->header("Content-Type",'text/html');
+            $response->header('Connection','keep-alive');
+            $response->header('Content-Length',strlen($result));
+            $response->end($result);
         }
-        $response->header("Content-Type",'text/html');
-        $response->header('Connection','keep-alive');
-        $response->header('Content-Length',strlen($result));
-        $response->end($result);
     }
 
     //开启master主进程【设置进程的名称】
