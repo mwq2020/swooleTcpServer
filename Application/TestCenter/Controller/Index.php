@@ -76,13 +76,21 @@ class Index extends Base
         $this->assign('apiList',$config['apiList']);
         $this->assign('requestData',$this->request);
 
-
+        $time_start = microtime(true);
 
         \PHPClient\HostSwitch::config($config['apiList']);
         $methodName = $this->request['function_name'];
-        $res = \PHPClient\Rpc::getInstance($this->request['rpc_name'])->setClassName($this->request['class_name'])->$methodName($this->request['argv']);
 
+        $serviceobj = \PHPClient\Rpc::getInstance($this->request['rpc_name'])->setClassName($this->request['class_name']);
+        $res = call_user_func_array(array($serviceobj,$methodName),$this->request['argv']);
         $this->assign('service_data',$res);
+
+        $time_end =  microtime(true);
+        $used_time = $time_end - $time_start;
+        $costtime = $used_time ? round($used_time, 6) : '';
+        $this->assign('costtime',$costtime);
+        $this->assign('time_start',$time_start);
+        $this->assign('time_end',$time_end);
 
         //调取接口操作
         $this->display('/index/index.php');
