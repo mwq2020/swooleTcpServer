@@ -1,4 +1,5 @@
 <?php
+namespace TestCenter;
 ini_set("display_errors", "On");
 error_reporting(E_ALL ^ E_NOTICE);
 
@@ -10,7 +11,7 @@ class HttpServer
     public $applicationRoot = __DIR__;
     public function __construct()
     {
-        $http = new swoole_http_server("0.0.0.0", 2020);
+        $http = new \swoole_http_server("0.0.0.0", 2020);
         $http->set(
             array(
                 'worker_num' => 1,

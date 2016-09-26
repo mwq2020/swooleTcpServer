@@ -1,7 +1,7 @@
 <?php
+namespace Myserver;
 ini_set("display_errors", "On");
 error_reporting(E_ALL | E_STRICT);
-
 
 class WebSocketServer
 {
@@ -14,7 +14,7 @@ class WebSocketServer
     {
         //file_put_contents($this->logDir,"\r\n WebSocketServerRoot: ".date('Y-m-d H:i:s').var_export($this->applicationRoot,true)."\r\n",FILE_APPEND);
 
-        $server = new swoole_server("0.0.0.0", 7000);
+        $server = new \swoole_server("0.0.0.0", 7000);
         $server->set(
             array(
                 'worker_num'    => 2,   //工作进程数量
@@ -64,13 +64,9 @@ class WebSocketServer
 
         try
         {
-            //include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
-            //\Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/../../Vendor/')->addRoot($this->applicationRoot.'/')->init();
-
             $class_name = "\\Handler\\{$class}";
             //判断类存在与否
-            if(!class_exists($class_name))
-            {
+            if(!class_exists($class_name)){
                 throw new \Exception('类【'.$class.'】不存在' ,'500');
             }
 
@@ -82,10 +78,8 @@ class WebSocketServer
             $ret = call_user_func_array(array($obj_class, $method), $param_array);
             // 发送数据给客户端，调用成功，data下标对应的元素即为调用结果
             $ret_data = array('code'=>200, 'flag'=>true, 'msg'=>'ok', 'data'=>$ret);
-        }
+        } catch(\Exception $e) {
             // 有异常
-        catch(\Exception $e)
-        {
             // 发送数据给客户端，发生异常，调用失败
             $code = $e->getCode() == 200 ? 2001 : ($e->getCode() ? $e->getCode() : 500);
             $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>$e->getMessage(), 'data'=>$e);
