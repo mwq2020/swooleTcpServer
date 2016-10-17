@@ -17,7 +17,10 @@
 PHP_BIN=php
 
 #代码根目录
-SERVER_PATH=/www/bestdo/swooleTcpServer
+#SERVER_PATH=/www/bestdo/swooleTcpServer
+SERVER_PATH=$(cd `dirname $0`; pwd)
+SERVER_PATH=${SERVER_PATH%/*}
+
 
 getMasterPid()
 {
@@ -39,7 +42,7 @@ case "$1" in
                 fi
                 echo  "starting server "
                 $PHP_BIN $SERVER_PATH/Application/*/server.php
-                echo " done"
+                echo "done"
         ;;
 
         stop)
@@ -52,13 +55,13 @@ case "$1" in
                 echo "shutting down server "
 
                 #kill -9 $PID #杀掉master进程
-                kill $PID #杀掉master进程
+                #kill $PID #杀掉master进程
 
                 #MID=`getManagerPid`
                 #kill -9 $MID #杀掉管理主进程
-                echo " done"
+                echo "done"
 
-                ps -ef | grep swoole|grep -v grep|awk '{print $2}'| xargs kill -9
+                ps -ef | grep swoole|grep -v grep|awk '{print $2}'|xargs kill -9
         ;;
 
         status)
@@ -85,12 +88,10 @@ case "$1" in
                     echo  "server is not running"
                     exit 1
                 fi
-
                 echo  "reload worker server "
-
-                kill -USR1 $MID
-
-                echo " done"
+                #kill -USR1 $MID
+                ps -ef | grep swoole|grep manager|grep -v grep|awk '{print $2}'|xargs kill -USR1
+                echo "done"
         ;;
 
         reloadtask)
@@ -99,21 +100,19 @@ case "$1" in
                     echo  "server is not running"
                     exit 1
                 fi
-
                 echo  "reload task server"
-
-                kill -USR2 $MID
-
-                echo " done"
+                #kill -USR2 $MID
+                ps -ef | grep swoole|grep manager|grep -v grep|awk '{print $2}'|xargs kill -USR2
+                echo "done"
         ;;
 
-        reloadall)
+        reload)
                 $0 reloadworker
                 $0 reloadtask
         ;;
 
         *)
-                echo "Usage: $0 {start|stop|force-quit|restart|reloadall|reloadworker|reloadtask|status}"
+                echo "Usage: $0 {start|stop|force-quit|restart|reload|reloadworker|reloadtask|status}"
                 exit 1
         ;;
 
