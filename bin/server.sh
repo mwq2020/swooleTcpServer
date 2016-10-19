@@ -22,6 +22,27 @@ SERVER_PATH=$(cd `dirname $0`; pwd)
 SERVER_PATH=${SERVER_PATH%/*}
 
 
+function start_application_server()
+{
+
+    filelist=$(ls $SERVER_PATH/Application)
+    for applicationDir in $filelist
+    do
+        if [ -d $SERVER_PATH/Application/$applicationDir ]
+        then
+            serverDir=$(ls $SERVER_PATH/Application/$applicationDir)
+            for serverfile in $serverDir
+                do
+                if [ -f $SERVER_PATH/Application/$applicationDir/$serverfile ] && [ `echo $serverfile | grep server|grep php` ]
+                    then
+                    echo Application/$applicationDir/$serverfile 'starting'
+                    php $SERVER_PATH/Application/$applicationDir/$serverfile
+                fi
+            done
+        fi
+    done
+}
+
 getMasterPid()
 {
     PID=`/bin/ps axu|grep server|grep swoole|grep master|awk '{print $2}'`
@@ -33,6 +54,7 @@ getManagerPid()
     MID=`/bin/ps axu|grep server|grep swoole|grep manager|awk '{print $2}'`
     echo $MID
 }
+
 case "$1" in
         start)
                 PID=`getMasterPid`
@@ -41,7 +63,8 @@ case "$1" in
                     exit 1
                 fi
                 echo  "starting server "
-                $PHP_BIN $SERVER_PATH/Application/*/server.php
+                #$PHP_BIN $SERVER_PATH/Application/*/server.php
+                start_application_server
                 echo "done"
         ;;
 

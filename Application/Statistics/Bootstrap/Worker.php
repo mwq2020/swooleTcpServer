@@ -135,7 +135,7 @@ class Worker {
 		$serv->on('Shutdown', array($this, 'onShutdown'));
 		$serv->on('ManagerStart', function ($serv) {
 			global $argv;
-			swoole_set_process_name("swoole server php statistics_service {$argv[0]}: manager ");
+			swoole_set_process_name("swoole server php statistics_service: manager ");
 		});
 		$serv->start();
 	}
@@ -148,7 +148,7 @@ class Worker {
 	{
 		//设置主进程名称
 		global $argv;
-		swoole_set_process_name("swoole server php statistics_service {$argv[0]}: statistics_service master");
+		swoole_set_process_name("swoole server php statistics_service: master");
 		
 		//保存进程master_pid文件比较好操作
 		file_put_contents(BASEDIR.$this->masterPidPath, $serv->master_pid);
@@ -230,9 +230,9 @@ class Worker {
 		$task_worker_num = isset($serv->setting['task_worker_num']) ? $serv->setting['task_worker_num'] : 0;
 		
 		if ($worker_id >= $worker_num) {
-			swoole_set_process_name("swoole server php statistics_service {$argv[0]}: task");
+			swoole_set_process_name("swoole server php statistics_service: task");
 		} else {
-			swoole_set_process_name("swoole server php statistics_service {$argv[0]}: worker");
+			swoole_set_process_name("swoole server php statistics_service: worker");
 			// 定时保存统计数据
 			if ($worker_id==0) {
 				$that = &$this;
