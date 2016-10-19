@@ -51,7 +51,7 @@ class WebServer
 	{
 		//设置主进程名称
 		global $argv;
-		swoole_set_process_name("php {$argv[0]}: statistics_web");
+		swoole_set_process_name("swoole server php statistics_web {$argv[0]}: master");
 		
 		//保存进程master_pid文件比较好操作
 		file_put_contents(BASEDIR.$this->webPidPath, $serv->master_pid);
@@ -73,9 +73,9 @@ class WebServer
 		$task_worker_num = isset($serv->setting['task_worker_num']) ? $serv->setting['task_worker_num'] : 0;
 		
 		if($worker_id >= $worker_num) {
-			swoole_set_process_name("php {$argv[0]}: task");
+			swoole_set_process_name("swoole server php statistics_web {$argv[0]}: task");
 		} else {
-			swoole_set_process_name("php {$argv[0]}: worker");
+			swoole_set_process_name("swoole server php statistics_web {$argv[0]}: worker");
 		}
 		usleep($worker_id);
 		echo str_pad($serv->master_pid, self::$_maxMasterPidLength+2),str_pad($serv->manager_pid, self::$_maxManagerPidLength+2),str_pad($serv->worker_id, self::$_maxWorkerIdLength+2), str_pad($serv->worker_pid, self::$_maxWorkerIdLength), "\n";;
@@ -89,7 +89,6 @@ class WebServer
 	 */
 	public function onRequest($request, $response)
 	{
-// 		var_dump($request, $response);
 		$_GET = $_POST = $_COOKIE = array();
 		$resp = \Core\Response::getInstance($response);
 		$resp->setResponse($response);
@@ -180,7 +179,7 @@ class WebServer
 		$webServer->on('start', array($this, 'onStart'));
 		$webServer->on('ManagerStart', function ($serv) {
 			global $argv;
-			swoole_set_process_name("php {$argv[0]}: manager");
+			swoole_set_process_name("swoole server php statistics_web {$argv[0]}: manager");
 		});
 		$webServer->start();
 	}
