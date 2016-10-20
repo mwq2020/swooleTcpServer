@@ -62,6 +62,9 @@ class WebSocketServer
         $method = $data['method'];
         $param_array = $data['param_array'];
 
+        $success = true;
+        $code = 200;
+        $msg = '';
         try
         {
             $class_name = "\\Handler\\{$class}";
@@ -77,13 +80,20 @@ class WebSocketServer
             }
             $ret = call_user_func_array(array($obj_class, $method), $param_array);
             // 发送数据给客户端，调用成功，data下标对应的元素即为调用结果
-            $ret_data = array('code'=>200, 'flag'=>true, 'msg'=>'ok', 'data'=>$ret);
+            $ret_data = array('code'=>$code, 'flag'=>true, 'msg'=>'ok', 'data'=>$ret);
         } catch(\Exception $e) {
+            $success = false;
             // 有异常
             // 发送数据给客户端，发生异常，调用失败
             $code = $e->getCode() == 200 ? 2001 : ($e->getCode() ? $e->getCode() : 500);
             $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>$e->getMessage(), 'data'=>$e);
         }
+        try{
+            \Statistics\StatisticClient::report($class,$method,$success,$code,$msg);
+        } catch(\Exception $e) {
+            file_put_contents($this->logDir,"\r\n ".$e." \r\n",FILE_APPEND);
+        }
+
         return $ret_data;
     }
 

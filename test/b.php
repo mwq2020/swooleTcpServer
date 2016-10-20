@@ -28,5 +28,5 @@ $config = array(
 $res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testEcho('a','b','c');
 print_r($res);
 
-$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testDb();
-print_r($res);
+//$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testDb();
+//print_r($res);
