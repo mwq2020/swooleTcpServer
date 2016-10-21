@@ -25,7 +25,7 @@ class Rpc
             $client = new \swoole_client(SWOOLE_SOCK_TCP);
             if (!$client->connect($uriAddress['host'],$uriAddress['port'] , -1))
             {
-                throw new \Exception("connect failed. Error: {$client->errCode}");
+                throw new \Exception("connect failed. Error: {$client->errCode} \r\n");
             }
             $sendData = array('class'=>$this->className,'method'=>$method,'param_array'=>$arguments);
             $client->send(json_encode($sendData));
@@ -47,8 +47,9 @@ class Rpc
             $error_msg .= date('Y-m-d H:i:s').'  error message info :'.$e->getMessage()."\r\n";
             file_put_contents($this->logDir,$error_msg,FILE_APPEND);
             if(self::$autoException){
-                throw new \Exception($e);
+                trigger_error($e);
             }
+            $receiveData = array('code'=>500,'flag'=>false,'msg'=>$e->getMessage(),'data'=>array());
         }
         return $receiveData;
     }

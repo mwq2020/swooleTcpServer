@@ -16,7 +16,7 @@ include_once __DIR__.'/../Vendor/Bootstrap/Autoloader.php';
 
 $config = array(
     'ClubService' => array(
-        //'uri' => "10.211.55.7:7000",
+//        'uri' => "10.211.55.7:7000",
         'uri' => "127.0.0.1:7000",
         'user' => 'club_manage',
         'secret' => '{1BA09530-F9E6-478D-9965-7EB31A59537E}',
