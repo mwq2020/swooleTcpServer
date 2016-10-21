@@ -190,7 +190,7 @@ class Worker {
 	{
 		if (empty($this->mongo) || !$this->mongo->getHosts()) {
 			$config = \Config\Mongo::getConfig();
-			$this->mongo = new \MongoClient($config['host'],$config['port']);
+			$this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
 		}
 		return $this->mongo;
 	}

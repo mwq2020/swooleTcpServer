@@ -5,15 +5,6 @@ error_reporting(E_ALL | E_STRICT);
 include_once __DIR__.'/../Vendor/Bootstrap/Autoloader.php';
 \Bootstrap\Autoloader::instance()->addRoot(__DIR__.'/../Vendor/')->init();
 
-//$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testDb();
-//print_r($res);
-
-//$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testEcho('a','b','c');
-//print_r($res);
-//
-//$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testDb();
-//print_r($res);
-
 $config = array(
     'ClubService' => array(
         'uri' => "10.211.55.7:7000",
@@ -30,3 +21,6 @@ print_r($res);
 
 $res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testDb();
 print_r($res);
+
+//$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testException();
+//print_r($res);
