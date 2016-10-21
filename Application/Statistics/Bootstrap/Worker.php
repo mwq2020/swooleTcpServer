@@ -17,6 +17,12 @@ class Worker {
 	 * @var resource
 	 */
 	private $redis;
+
+	/**
+	 * redis 资源链接
+	 * @var resource
+	 */
+	private $mongo;
 	
 	/**
 	 * server实例
@@ -175,6 +181,19 @@ class Worker {
 		}
 		return $this->redis;
 	}
+
+	/**
+	 * 日志保存在mongodb中
+	 * @return \MongoClient|resource
+	 */
+	public function getMongo()
+	{
+		if (empty($this->mongo) || !$this->mongo->getHosts()) {
+			$config = \Config\Mongo::getConfig();
+			$this->mongo = new \MongoClient($config['host'],$config['port']);
+		}
+		return $this->mongo;
+	}
 	
 	/**
 	 * 日志
@@ -237,7 +256,7 @@ class Worker {
 			if ($worker_id==0) {
 				$that = &$this;
 				$serv->tick($this->write_period_length, function($id) use($that) {
-// 					echo 'tick one'.PHP_EOL;
+ 					//echo 'tick one'.PHP_EOL;
 					$that->writeStatisticsToDisk();
 					$that->writeLogToDisk();
 				});
@@ -245,7 +264,7 @@ class Worker {
 				$datapath = Config::$dataPath;
 				$expireTime = $this->expired_time;
 				$serv->tick($this->clear_period_length, function($id) use($datapath, $expireTime, $that) {
-// 					echo 'tick two'.PHP_EOL;
+ 					//echo 'tick two'.PHP_EOL;
 					$that->clearDisk($datapath . $this->statisticDir, $expireTime);
 					$that->clearDisk($datapath . $this->logDir, $expireTime);
 				});
@@ -292,8 +311,17 @@ class Worker {
 			$this->collectStatistics($module, $interface, $cost_time, $success, $ip, $code, $msg);
 			// 全局统计
 			$this->collectStatistics('AllData', 'Statistics', $cost_time, $success, $ip, $code, $msg);
+
+			//日志记录在mongodb
+			$mongo = $this->getMongo();
+			if(!empty($mongo)){
+				$data['remote_ip'] = $ip;
+				$data['msg'] = $msg;
+				$mongo->$module->$interface->save($data);
+			}
+
 			// 失败记录日志
-			if (! $success) {
+			if (!$success) {
 				$redis = $this->getRedis();
 				$logBuffer = $redis->get($this->logBufferKey);
 				$logBuffer .= date('Y-m-d H:i:s', $time) . "\t$ip\t$module::$interface\tcode:$code\tmsg:$msg\n";
@@ -494,7 +522,7 @@ class Worker {
 	 */
 	public function onWorkerStop($serv, $worker_id)
 	{
-		echo "WorkerStop[$worker_id]|pid=" . $serv->worker_pid . ".\n";
+		//echo "WorkerStop[$worker_id]|pid=" . $serv->worker_pid . ".\n";
 	}
 
 	/**
@@ -503,7 +531,9 @@ class Worker {
 	 */
 	public function onShutdown($serv)
 	{
-		echo "Server: onShutdown\n";
+		//echo "Server: onShutdown\n";
 	}
+
+
 
 }
