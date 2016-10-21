@@ -313,11 +313,13 @@ class Worker {
 			$this->collectStatistics('AllData', 'Statistics', $cost_time, $success, $ip, $code, $msg);
 
 			//日志记录在mongodb
-			$mongo = $this->getMongo();
-			if(!empty($mongo)){
+			$mongoHander = $this->getMongo();
+			if(!empty($mongoHander)){
 				$data['remote_ip'] = $ip;
 				$data['msg'] = $msg;
-				$mongo->$module->$interface->save($data);
+				$monogoDb = $mongoHander->selectDB($module);
+				$mongoCollection = $monogoDb->selectCollection($interface);
+				$mongoCollection->insert($data);
 			}
 
 			// 失败记录日志
