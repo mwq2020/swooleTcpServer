@@ -62,6 +62,8 @@ class WebSocketServer
         $method = $data['method'];
         $param_array = $data['param_array'];
 
+        \Statistics\StatisticClient::tick($class,$method);
+
         $success = true;
         $code = 200;
         $msg = '';
