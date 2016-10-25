@@ -42,7 +42,7 @@ class HttpServer
     {
         register_shutdown_function(array($this,'handleFatalError'),$request,$response);
         try {
-            (new \FrameWork\Controller)->dealRequest($request,$response);
+            (new \Framework\Controller)->dealRequest($request,$response);
         } catch (\Exception $e ) {
             $result = $e->getMessage();
             $response->status('500');
