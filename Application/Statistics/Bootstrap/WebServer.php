@@ -31,6 +31,12 @@ class WebServer
 	protected static $_maxManagerPidLength = 12;
 	protected static $_maxWorkerIdLength = 12;
 	protected static $_maxWorkerPidLength = 12;
+
+
+	public $serverNamePrefix = 'swooleServer[php] ';//swoole服务的进程名称前缀
+	public $serverName = 'statistics_web';//自己的服务名称
+	public $serverHost;//服务的绑定ip
+	public $serverPort;//服务的绑定端口
 	
 	/**
 	 * 初始化
@@ -51,7 +57,7 @@ class WebServer
 	{
 		//设置主进程名称
 		global $argv;
-		swoole_set_process_name("swoole server php statistics_web: master");
+		swoole_set_process_name($this->serverNamePrefix.$this->serverName.' master listen['.$this->serverHost.':'.$this->serverPort.']');
 		
 		//保存进程master_pid文件比较好操作
 		file_put_contents(BASEDIR.$this->webPidPath, $serv->master_pid);
@@ -73,9 +79,9 @@ class WebServer
 		$task_worker_num = isset($serv->setting['task_worker_num']) ? $serv->setting['task_worker_num'] : 0;
 		
 		if($worker_id >= $worker_num) {
-			swoole_set_process_name("swoole server php statistics_web: task");
+			swoole_set_process_name($this->serverNamePrefix.$this->serverName.' task listen['.$this->serverHost.':'.$this->serverPort.']');
 		} else {
-			swoole_set_process_name("swoole server php statistics_web: worker");
+			swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']');
 		}
 		usleep($worker_id);
 		echo str_pad($serv->master_pid, self::$_maxMasterPidLength+2),str_pad($serv->manager_pid, self::$_maxManagerPidLength+2),str_pad($serv->worker_id, self::$_maxWorkerIdLength+2), str_pad($serv->worker_pid, self::$_maxWorkerIdLength), "\n";;
@@ -172,6 +178,8 @@ class WebServer
 	
 	public function run($ip="0.0.0.0", $port=6666)
 	{
+		$this->serverHost = $ip;
+		$this->serverPort = $port;
 		$webServer = new \swoole_http_server($ip, $port);
 		$webServer->set (\Config\Server::getWebServerConfig());
 		$webServer->on('WorkerStart', array($this, 'onWorkerStart'));
@@ -179,7 +187,7 @@ class WebServer
 		$webServer->on('start', array($this, 'onStart'));
 		$webServer->on('ManagerStart', function ($serv) {
 			global $argv;
-			swoole_set_process_name("swoole server php statistics_web: manager");
+			swoole_set_process_name($this->serverNamePrefix.$this->serverName.' manager listen['.$this->serverHost.':'.$this->serverPort.']');
 		});
 		$webServer->start();
 	}

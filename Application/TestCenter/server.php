@@ -9,9 +9,15 @@ class HttpServer
     public $http;
     public $logDir = '/tmp/test.log';
     public $applicationRoot = __DIR__;
+
+    public $serverNamePrefix = 'swooleServer[php] ';//swoole服务的进程名称前缀
+    public $serverName = 'TestClient';//自己的服务名称
+    public $serverHost = '0.0.0.0';//服务的绑定ip
+    public $serverPort = '2020';//服务的绑定端口
+
     public function __construct()
     {
-        $http = new \swoole_http_server("0.0.0.0", 2020);
+        $http = new \swoole_http_server($this->serverHost, $this->serverPort);
         $http->set(
             array(
                 'worker_num' => 1,
@@ -51,14 +57,14 @@ class HttpServer
     public function onStart($server)
     {
         file_put_contents($this->logDir,"\r\n onStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
-        swoole_set_process_name('running master swoole test server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
+        swoole_set_process_name($this->serverNamePrefix.$this->serverName.' master listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
     //开启task进程【设置进程的名称】
     public function onManagerStart($server)
     {
         file_put_contents($this->logDir,"\r\n onManagerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
-        swoole_set_process_name('running manager swoole test server.php'); //可以甚至swoole的进程名字 用于区分{设置主进程的名称}
+        swoole_set_process_name($this->serverNamePrefix.$this->serverName.' manager listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分{设置主进程的名称}
     }
 
     //开启worker进程【设置进程的名称】
@@ -68,7 +74,7 @@ class HttpServer
         \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/')->addRoot($this->applicationRoot.'/../../Vendor/')->init();
 
         file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
-        swoole_set_process_name('running worker swoole test server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
+        swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
     //当tcpworker进程处理崩溃的时候出发

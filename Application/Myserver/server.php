@@ -10,11 +10,17 @@ class WebSocketServer
     public $logDir = '/tmp/swoole.log';
     public $applicationRoot = __DIR__;
 
+    public $start_timestamp = 0;
+    public $end_timestamp = 0;
+
+    public $serverNamePrefix = 'swooleServer[php] ';//swoole服务的进程名称前缀
+    public $serverName = 'MyServer';//自己的服务名称
+    public $serverHost = '0.0.0.0';//服务的绑定ip
+    public $serverPort = '7000';//服务的绑定端口
+
     public function __construct() 
     {
-        //file_put_contents($this->logDir,"\r\n WebSocketServerRoot: ".date('Y-m-d H:i:s').var_export($this->applicationRoot,true)."\r\n",FILE_APPEND);
-
-        $server = new \swoole_server("0.0.0.0", 7000);
+        $server = new \swoole_server($this->serverHost, $this->serverPort);
         $server->set(
             array(
                 'worker_num'    => 4,   //工作进程数量
@@ -38,6 +44,7 @@ class WebSocketServer
 
     public function onReceive($server,$fd,$from_id,$data)
     {
+        $this->start_timestamp = microtime(true);
         register_shutdown_function(array($this,'handleFatalError'),$server,$fd);
 
         file_put_contents($this->logDir,"\r\n onReceive: ".date('Y-m-d H:i:s').var_export($data,true)."\r\n",FILE_APPEND);
@@ -57,16 +64,15 @@ class WebSocketServer
 
     public function dealRequest($data)
     {
-        $data = json_decode($data,true);
-        $class = $data['class'];
-        $method = $data['method'];
+        $data       = json_decode($data,true);
+        $class      = $data['class'];
+        $method     = $data['method'];
         $param_array = $data['param_array'];
 
-        \Statistics\StatisticClient::tick($class,$method);
 
-        $success = true;
-        $code = 200;
-        $msg = '';
+        $success = true;//接口的成功或者失败的标志
+        $code = 200;    //服务状态code
+        $msg = '';      //错误堆栈信息
         try
         {
             $class_name = "\\Handler\\{$class}";
@@ -81,21 +87,22 @@ class WebSocketServer
                 throw new \Exception('类【'.$class.'】不包含方法【'.$method.'】' ,'500');
             }
             $ret = call_user_func_array(array($obj_class, $method), $param_array);
+
             // 发送数据给客户端，调用成功，data下标对应的元素即为调用结果
             $ret_data = array('code'=>$code, 'flag'=>true, 'msg'=>'ok', 'data'=>$ret);
         } catch(\Exception $e) {
             $success = false;
-            // 有异常
-            // 发送数据给客户端，发生异常，调用失败
+            // 有异常 发送数据给客户端，发生异常，调用失败
             $code = $e->getCode() == 200 ? 2001 : ($e->getCode() ? $e->getCode() : 500);
+            $msg = ''.$e;
             $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>$e->getMessage(), 'data'=>$e);
         }
+        $this->end_timestamp = microtime(true);
         try{
             \Statistics\StatisticClient::report($class,$method,$success,$code,$msg);
         } catch(\Exception $e) {
             file_put_contents($this->logDir,"\r\n ".$e." \r\n",FILE_APPEND);
         }
-
         return $ret_data;
     }
 
@@ -121,14 +128,14 @@ class WebSocketServer
     public function onStart($server)
     {
         file_put_contents($this->logDir,"\r\n onStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
-        swoole_set_process_name('running master swoole bestdo server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
+        swoole_set_process_name($this->serverNamePrefix.$this->serverName.' master listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
     //开启task进程【设置进程的名称】
     public function onManagerStart($server)
     {
         file_put_contents($this->logDir,"\r\n onManagerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
-        swoole_set_process_name('running manager swoole bestdo server.php'); //可以甚至swoole的进程名字 用于区分{设置主进程的名称}
+        swoole_set_process_name($this->serverNamePrefix.$this->serverName.' manager listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分{设置主进程的名称}
     }
 
     //开启worker进程【设置进程的名称】
@@ -137,7 +144,7 @@ class WebSocketServer
         include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
         \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/')->addRoot($this->applicationRoot.'/../../Vendor/')->init();
         file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
-        swoole_set_process_name('running worker swoole bestdo  server.php'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
+        swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
     //当tcpworker进程处理崩溃的时候出发

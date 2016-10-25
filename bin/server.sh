@@ -45,13 +45,13 @@ function start_application_server()
 
 getMasterPid()
 {
-    PID=`/bin/ps axu|grep server|grep swoole|grep master|awk '{print $2}'`
+    PID=`/bin/ps axu|grep swooleServer|grep swoole|grep master|awk '{print $2}'`
     echo $PID
 }
 
 getManagerPid()
 {
-    MID=`/bin/ps axu|grep server|grep swoole|grep manager|awk '{print $2}'`
+    MID=`/bin/ps axu|grep swooleServer|grep swoole|grep manager|awk '{print $2}'`
     echo $MID
 }
 
@@ -84,7 +84,7 @@ case "$1" in
                 #kill -9 $MID #杀掉管理主进程
                 echo "done"
 
-                ps -ef | grep swoole|grep -v grep|awk '{print $2}'|xargs kill -9
+                ps -ef | grep swooleServer|grep -v grep|awk '{print $2}'|xargs kill -9
         ;;
 
         status)
@@ -113,7 +113,7 @@ case "$1" in
                 fi
                 echo  "reload worker server "
                 #kill -USR1 $MID
-                ps -ef | grep swoole|grep manager|grep -v grep|awk '{print $2}'|xargs kill -USR1
+                ps -ef | grep swooleServer|grep manager|grep -v grep|awk '{print $2}'|xargs kill -USR1
                 echo "done"
         ;;
 
@@ -125,7 +125,7 @@ case "$1" in
                 fi
                 echo  "reload task server"
                 #kill -USR2 $MID
-                ps -ef | grep swoole|grep manager|grep -v grep|awk '{print $2}'|xargs kill -USR2
+                ps -ef | grep swooleServer|grep manager|grep -v grep|awk '{print $2}'|xargs kill -USR2
                 echo "done"
         ;;
 

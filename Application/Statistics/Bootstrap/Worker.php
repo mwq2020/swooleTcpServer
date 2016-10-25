@@ -96,6 +96,12 @@ class Worker {
 	protected static $_maxManagerPidLength = 12;
 	protected static $_maxWorkerIdLength = 12;
 	protected static $_maxWorkerPidLength = 12;
+
+
+	public $serverNamePrefix = 'swooleServer[php] ';//swoole服务的进程名称前缀
+	public $serverName = 'statistics_service';//自己的服务名称
+	public $serverHost;//服务的绑定ip
+	public $serverPort;//服务的绑定端口
 	
 	public function __construct()
 	{
@@ -119,6 +125,8 @@ class Worker {
 	
 	public function run($ip="0.0.0.0", $port= 55656, $mode = SWOOLE_PROCESS, $type=SWOOLE_SOCK_TCP)
 	{
+		$this->serverHost = $ip;
+		$this->serverPort = $port;
 		if (empty($port)) {
 			$port = $this->handleWorkerPort;
 		} else {
@@ -141,7 +149,7 @@ class Worker {
 		$serv->on('Shutdown', array($this, 'onShutdown'));
 		$serv->on('ManagerStart', function ($serv) {
 			global $argv;
-			swoole_set_process_name("swoole server php statistics_service: manager ");
+			swoole_set_process_name($this->serverNamePrefix.$this->serverName.' manager listen['.$this->serverHost.':'.$this->serverPort.']');
 		});
 		$serv->start();
 	}
@@ -154,7 +162,7 @@ class Worker {
 	{
 		//设置主进程名称
 		global $argv;
-		swoole_set_process_name("swoole server php statistics_service: master");
+		swoole_set_process_name($this->serverNamePrefix.$this->serverName.' master listen['.$this->serverHost.':'.$this->serverPort.']');
 		
 		//保存进程master_pid文件比较好操作
 		file_put_contents(BASEDIR.$this->masterPidPath, $serv->master_pid);
@@ -249,9 +257,9 @@ class Worker {
 		$task_worker_num = isset($serv->setting['task_worker_num']) ? $serv->setting['task_worker_num'] : 0;
 		
 		if ($worker_id >= $worker_num) {
-			swoole_set_process_name("swoole server php statistics_service: task");
+			swoole_set_process_name($this->serverNamePrefix.$this->serverName.' task listen['.$this->serverHost.':'.$this->serverPort.']');
 		} else {
-			swoole_set_process_name("swoole server php statistics_service: worker");
+			swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']');
 			// 定时保存统计数据
 			if ($worker_id==0) {
 				$that = &$this;

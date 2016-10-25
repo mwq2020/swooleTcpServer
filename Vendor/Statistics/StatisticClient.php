@@ -39,7 +39,7 @@ class StatisticClient
 	 * @param string $report_address        	
 	 * @return boolean
 	 */
-	public static function report($module, $interface, $success, $code, $msg, $report_address = '')
+	public static function report($module, $interface, $success, $code, $msg, $report_address = '',$process_time=0)
 	{
 		$report_address = $report_address ? $report_address : '127.0.0.1:55656';
 		if (isset(self::$timeMap[$module][$interface]) && self::$timeMap[$module][$interface] > 0) {
