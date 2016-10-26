@@ -56,14 +56,14 @@ class HttpServer
     //开启master主进程【设置进程的名称】
     public function onStart($server)
     {
-        file_put_contents($this->logDir,"\r\n onStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('onStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' master listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
     //开启task进程【设置进程的名称】
     public function onManagerStart($server)
     {
-        file_put_contents($this->logDir,"\r\n onManagerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('onManagerStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' manager listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分{设置主进程的名称}
     }
 
@@ -73,7 +73,7 @@ class HttpServer
         include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
         \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/')->addRoot($this->applicationRoot.'/../../Vendor/')->init();
 
-        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('onWorkerStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
@@ -113,7 +113,7 @@ class HttpServer
                     if (isset($_SERVER['REQUEST_URI'])){
                         $log .= '[QUERY] ' . $_SERVER['REQUEST_URI'];
                     }
-                    file_put_contents($this->logDir,"\r\n handleFatalError: ".date('Y-m-d H:i:s')." \r\n".$log."\r\n",FILE_APPEND);
+                    $this->log('handleFatalError:'.$log);
                     $response->status(500);
                     $response->end($log);
                 break;
@@ -121,7 +121,7 @@ class HttpServer
                     break;
             }
         }
-        file_put_contents($this->logDir,"\r\n register_shutdown_function: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('register_shutdown_function');
     }
 
     public static function getInstance()
@@ -130,6 +130,15 @@ class HttpServer
             self::$instance = new HttpServer;
         }
         return self::$instance;
+    }
+
+    public function log($content,$dir='')
+    {
+        if(empty($dir)){
+            $dir = $this->logDir;
+        }
+        $content = '['.date('Y-m-d H:i:s').']'.$content."\r\n";
+        file_put_contents($dir, $content, FILE_APPEND);
     }
 }
 

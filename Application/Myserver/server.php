@@ -1,5 +1,4 @@
 <?php
-namespace Myserver;
 ini_set("display_errors", "On");
 error_reporting(E_ALL | E_STRICT);
 
@@ -18,9 +17,25 @@ class WebSocketServer
     public $serverHost = '0.0.0.0';//服务的绑定ip
     public $serverPort = '7000';//服务的绑定端口
 
+    public $swooleTable = null;
+    public $swooleAtomic = null; //接口访问总的次数
+
+    public $hasStartTimer = false;
+
     public function __construct() 
     {
-        $server = new \swoole_server($this->serverHost, $this->serverPort);
+        //sucess_count  fail_count  success_cost_time  fail_cost_time
+        $swooleTable = new \swoole_table(1024); //最大存储1024行 指定的时候只能指定2的指数列
+        $swooleTable->column('sucess_count', swoole_table::TYPE_INT, 8);     //成功调用次数
+        $swooleTable->column('fail_count', swoole_table::TYPE_INT, 8);       //失败调用次数
+        $swooleTable->column('success_cost_time', swoole_table::TYPE_FLOAT); //成功耗费的总时间
+        $swooleTable->column('fail_cost_time', swoole_table::TYPE_FLOAT);    //失败耗费的总时间
+        $swooleTable->create();
+
+        //原子技术
+        $atomic = new \swoole_atomic(0);
+
+        $server = new swoole_server($this->serverHost, $this->serverPort);
         $server->set(
             array(
                 'worker_num'    => 4,   //工作进程数量
@@ -29,9 +44,13 @@ class WebSocketServer
             )
         );
 
+        $server->swooleTable = $swooleTable;
+        $server->usedCount = $atomic;
+
         $server->on('start',array($this,'onStart'));
         $server->on('managerStart',array($this,'onManagerStart'));
         $server->on('workerStart',array($this,'onWorkerStart'));
+        $server->on('Timer',array($this,'onTimer'));
         $server->on('connect',array($this,'onConnect'));
         $server->on('receive',array($this,'onReceive'));
         $server->on('close',array($this,'onClose'));
@@ -44,31 +63,38 @@ class WebSocketServer
 
     public function onReceive($server,$fd,$from_id,$data)
     {
+        $server->usedCount->add(1);//接口调用计数
         $this->start_timestamp = microtime(true);
         register_shutdown_function(array($this,'handleFatalError'),$server,$fd);
 
-        file_put_contents($this->logDir,"\r\n onReceive: ".date('Y-m-d H:i:s').var_export($data,true)."\r\n",FILE_APPEND);
+        $this->log('onReceive');
         if(trim($data) == 'stats'){
             $stats = $this->getServiceStat();
             return $server->send($fd,$stats);
         } elseif(trim($data) == 'help') {
             return $server->send($fd,"youcan use  stats|help|quit \r\n");
-            //$server->close($fd);
         } elseif(trim($data) == 'quit') {
             $server->close($fd);
         }
-        $data = $this->dealRequest($data);
+        $ip = $server->connection_info($fd)['remote_ip'];
+        $this->log('ip:'.$ip);
+        $data = $this->dealRequest($data,$server);
         $server->send($fd, json_encode($data));
         $server->close($fd);
     }
 
-    public function dealRequest($data)
+    public function dealRequest($data,$server)
     {
         $data       = json_decode($data,true);
         $class      = $data['class'];
         $method     = $data['method'];
         $param_array = $data['param_array'];
 
+        //sucess_count  fail_count  success_cost_time  fail_cost_time
+        $statistics_key = $this->serverName.'_'.$class.'_'.$method.'_'.date('YmdHi');
+        if(!$server->swooleTable->exist($statistics_key)){
+            $server->swooleTable->set($statistics_key,array('sucess_count'=>0,'fail_count'=>0,'success_cost_time'=>0,'fail_cost_time'=>0));
+        }
 
         $success = true;//接口的成功或者失败的标志
         $code = 200;    //服务状态code
@@ -90,60 +116,70 @@ class WebSocketServer
 
             // 发送数据给客户端，调用成功，data下标对应的元素即为调用结果
             $ret_data = array('code'=>$code, 'flag'=>true, 'msg'=>'ok', 'data'=>$ret);
+            $server->swooleTable->incr($statistics_key,'sucess_count',1);
         } catch(\Exception $e) {
             $success = false;
             // 有异常 发送数据给客户端，发生异常，调用失败
             $code = $e->getCode() == 200 ? 2001 : ($e->getCode() ? $e->getCode() : 500);
             $msg = ''.$e;
             $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>$e->getMessage(), 'data'=>$e);
+            $server->swooleTable->incr($statistics_key,'fail_count',1);
         }
         $this->end_timestamp = microtime(true);
         try{
-            \Statistics\StatisticClient::report($class,$method,$success,$code,$msg);
+            //\Statistics\StatisticClient::report($class,$method,$success,$code,$msg);
         } catch(\Exception $e) {
-            file_put_contents($this->logDir,"\r\n ".$e." \r\n",FILE_APPEND);
+            $this->log(' '.$e);
         }
+
         return $ret_data;
     }
 
     //开启链接时回调
     public function onConnect($server,$fd)
     {
-        file_put_contents($this->logDir,"\r\n onConnect: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('onConnect');
     }
 
     //关闭链接时回调
     public function onClose($server,$fd)
     {
-        file_put_contents($this->logDir,"\r\n onClose: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('onClose');
     }
 
     //开启task进程【设置进程的名称】
     public function onWorkerError($server,$fd,$worker_pid,$exit_code)
     {
-        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('onWorkerError');
     }
 
     //开启master主进程【设置进程的名称】
     public function onStart($server)
     {
-        file_put_contents($this->logDir,"\r\n onStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('onStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' master listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
     //开启task进程【设置进程的名称】
     public function onManagerStart($server)
     {
-        file_put_contents($this->logDir,"\r\n onManagerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('onManagerStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' manager listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分{设置主进程的名称}
     }
 
     //开启worker进程【设置进程的名称】
     public function onWorkerStart($server,$fd)
     {
+//        $server->tick(4000, function() use ($server, $fd) {
+//            foreach($server->swooleTable as $key => $row){
+//                $this->log('onTimer '.$key.'-'.json_encode($row));
+//            }
+//        });
+
+
         include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
         \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/')->addRoot($this->applicationRoot.'/../../Vendor/')->init();
-        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('onWorkerStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
@@ -183,7 +219,7 @@ class WebSocketServer
                     if (isset($_SERVER['REQUEST_URI'])){
                         $log .= '[QUERY] ' . $_SERVER['REQUEST_URI'];
                     }
-                    file_put_contents($this->logDir,"\r\n handleFatalError: ".date('Y-m-d H:i:s')." \r\n".$log."\r\n",FILE_APPEND);
+                    $this->log('handleFatalError '.$log);
 
                     $data = array('code'=>500, 'flag'=>false, 'msg'=>$log, 'data'=>'');
                     $server->send($fd, json_encode($data));
@@ -193,7 +229,7 @@ class WebSocketServer
                     break;
             }
         }
-        file_put_contents($this->logDir,"\r\n register_shutdown_function: ".date('Y-m-d H:i:s')." \r\n",FILE_APPEND);
+        $this->log('register_shutdown_function');
     }
 
     /*
@@ -201,21 +237,9 @@ class WebSocketServer
     //开启task进程【设置进程的名称】
     public function onShutdown($server,$fd)
     {
-        $errors = error_get_last();
-        file_put_contents($this->logDir,"\r\n onWorkerStart: ".date('Y-m-d H:i:s')."---".print_r($errors,true)." \r\n",FILE_APPEND);
+        $this->log('onShutdown '.$log);
     }
 
-    //进程结束的时候调用
-    public function onFinish()
-    {
-
-    }
-
-    //master和worker都有此回调定时处理器
-    public function onTimer()
-    {
-
-    }
 
     //主进程结束时
     public function onMasterClose()
@@ -242,6 +266,24 @@ class WebSocketServer
         return $statusStr;
     }
 
+    //worker进程可以调用此回调函数
+    public function onTimer($server,$interval)
+    {
+        $this->log('onTimer count:'.$interval);
+    }
+
+    //task进程可以调用此回调函数
+    public function onTask(swoole_server $serv,  $task_id, $from_id, $data)
+    {
+        $this->log('onTask');
+    }
+    
+    //task进程可以调用此回调函数
+    public function onFinish($serv, $task_id, $data)
+    {
+        $this->log('onFinish');
+    }
+
     //开启单例模式
     public static function getInstance() 
     {
@@ -249,6 +291,15 @@ class WebSocketServer
             self::$instance = new WebSocketServer;
         }
         return self::$instance;
+    }
+
+    public function log($content,$dir='')
+    {
+        if(empty($dir)){
+            $dir = $this->logDir;
+        }
+        $content = '['.date('Y-m-d H:i:s').']'.$content."\r\n";
+        file_put_contents($dir, $content, FILE_APPEND);
     }
 
 }
