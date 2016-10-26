@@ -75,10 +75,16 @@ class WebSocketServer
             $stats = $this->getServiceStat();
             return $server->send($fd,$stats);
         } elseif(trim($data) == 'help') {
-            return $server->send($fd,"youcan use  stats|help|quit \r\n");
+            return $server->send($fd,"you can use {stats|help|quit|reload} \r\n");
+        } elseif(trim($data) == 'reload'){
+            $server->reload();
+            return $server->send($fd,"reload ok \r\n");
         } elseif(trim($data) == 'quit') {
-            $server->close($fd);
+            return $server->close($fd,true);
+        } elseif(trim($data) == '' || empty($data)) {
+            return $server->send($fd,"cmd can not empty \r\n");
         }
+
         $data = $this->dealRequest($server,$fd,$from_id,$data);
         $server->send($fd, json_encode($data));
         $server->close($fd);
@@ -103,6 +109,12 @@ class WebSocketServer
         $msg = '';      //错误堆栈信息
         try
         {
+            if(empty($class)){
+                throw new \Exception('类名不能为空' ,'500');
+            } elseif(empty($method)){
+                throw new \Exception('方法名不能为空' ,'500');
+            }
+
             $class_name = "\\Handler\\{$class}";
             //判断类存在与否
             if(!class_exists($class_name)){
@@ -182,8 +194,8 @@ class WebSocketServer
 
         include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
         \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/')->addRoot($this->applicationRoot.'/../../Vendor/')->init();
-        //$this->log('onWorkerStart='.$worker_id);
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
+        //$this->log('onWorkerStart='.$worker_id);
     }
 
     //当tcpworker进程处理崩溃的时候出发
@@ -301,14 +313,12 @@ class WebSocketServer
         if(empty($dir)){
             $dir = $this->logDir;
         }
-        $content = '['.date('Y-m-d H:i:s').']'.$content."\r\n";
+        $content = '['.date('Y-m-d H:i:s').']'.$content.PHP_EOL;
         file_put_contents($dir, $content, FILE_APPEND);
     }
 
 }
 
 WebSocketServer::getInstance();
-
-
 //   $serv->reload() 可以用内置的方法刷新进程，达到热更新
 
