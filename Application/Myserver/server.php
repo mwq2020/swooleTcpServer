@@ -40,7 +40,8 @@ class WebSocketServer
             array(
                 'worker_num'    => 4,   //工作进程数量
                 'max_request'   => 8, //多少次调用后再重启新的进程
-                'daemonize' => true
+                'daemonize' => true,
+                'log_file' => $this->logDir,
             )
         );
 
@@ -50,7 +51,7 @@ class WebSocketServer
         $server->on('start',array($this,'onStart'));
         $server->on('managerStart',array($this,'onManagerStart'));
         $server->on('workerStart',array($this,'onWorkerStart'));
-        $server->on('Timer',array($this,'onTimer'));
+        //$server->on('Timer',array($this,'onTimer'));
         $server->on('connect',array($this,'onConnect'));
         $server->on('receive',array($this,'onReceive'));
         $server->on('close',array($this,'onClose'));
@@ -58,6 +59,8 @@ class WebSocketServer
         $server->on('workerError',array($this,'onWorkerError'));
         $this->serverObj = $server;
         $server->start();
+
+        swoole_server_addtimer($server,40);
 
     }
 
@@ -67,7 +70,7 @@ class WebSocketServer
         $this->start_timestamp = microtime(true);
         register_shutdown_function(array($this,'handleFatalError'),$server,$fd);
 
-        $this->log('onReceive');
+        //$this->log('onReceive');
         if(trim($data) == 'stats'){
             $stats = $this->getServiceStat();
             return $server->send($fd,$stats);
@@ -76,19 +79,18 @@ class WebSocketServer
         } elseif(trim($data) == 'quit') {
             $server->close($fd);
         }
-        $ip = $server->connection_info($fd)['remote_ip'];
-        $this->log('ip:'.$ip);
-        $data = $this->dealRequest($data,$server);
+        $data = $this->dealRequest($server,$fd,$from_id,$data);
         $server->send($fd, json_encode($data));
         $server->close($fd);
     }
 
-    public function dealRequest($data,$server)
+    public function dealRequest($server,$fd,$from_id,$data)
     {
         $data       = json_decode($data,true);
         $class      = $data['class'];
         $method     = $data['method'];
         $param_array = $data['param_array'];
+        $ip = $server->connection_info($fd)['remote_ip'];
 
         //sucess_count  fail_count  success_cost_time  fail_cost_time
         $statistics_key = $this->serverName.'_'.$class.'_'.$method.'_'.date('YmdHi');
@@ -163,23 +165,24 @@ class WebSocketServer
     //开启task进程【设置进程的名称】
     public function onManagerStart($server)
     {
-        $this->log('onManagerStart');
+        //$this->log('onManagerStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' manager listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分{设置主进程的名称}
     }
 
     //开启worker进程【设置进程的名称】
-    public function onWorkerStart($server,$fd)
+    public function onWorkerStart($server,$worker_id)
     {
-//        $server->tick(4000, function() use ($server, $fd) {
-//            foreach($server->swooleTable as $key => $row){
-//                $this->log('onTimer '.$key.'-'.json_encode($row));
-//            }
-//        });
-
+        if($worker_id == 0){
+            $server->tick(59000, function() use ($server, $worker_id) {
+                foreach($server->swooleTable as $key => $row){
+                    $this->log('onTimer '.$key.'-'.json_encode($row));
+                }
+            });
+        }
 
         include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
         \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/')->addRoot($this->applicationRoot.'/../../Vendor/')->init();
-        $this->log('onWorkerStart');
+        //$this->log('onWorkerStart='.$worker_id);
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
@@ -269,19 +272,19 @@ class WebSocketServer
     //worker进程可以调用此回调函数
     public function onTimer($server,$interval)
     {
-        $this->log('onTimer count:'.$interval);
+        //$this->log('onTimer count:'.$interval);
     }
 
     //task进程可以调用此回调函数
     public function onTask(swoole_server $serv,  $task_id, $from_id, $data)
     {
-        $this->log('onTask');
+        //$this->log('onTask');
     }
-    
+
     //task进程可以调用此回调函数
     public function onFinish($serv, $task_id, $data)
     {
-        $this->log('onFinish');
+        //$this->log('onFinish');
     }
 
     //开启单例模式
