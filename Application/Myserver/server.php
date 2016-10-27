@@ -39,7 +39,7 @@ class WebSocketServer
         $server->set(
             array(
                 'worker_num'    => 4,   //工作进程数量
-                'max_request'   => 8, //多少次调用后再重启新的进程
+                'max_request'   => 1000, //多少次调用后再重启新的进程
                 'daemonize' => true,
                 'log_file' => $this->logDir,
             )
@@ -99,7 +99,7 @@ class WebSocketServer
         $ip = $server->connection_info($fd)['remote_ip'];
 
         //sucess_count  fail_count  success_cost_time  fail_cost_time
-        $statistics_key = $this->serverName.'_'.$class.'_'.$method.'_'.date('YmdHi');
+        $statistics_key = $this->serverName.'|'.$class.'|'.$method.'|'.$ip.'|'.date('YmdHi');
         if(!$server->swooleTable->exist($statistics_key)){
             $server->swooleTable->set($statistics_key,array('sucess_count'=>0,'fail_count'=>0,'success_cost_time'=>0,'fail_cost_time'=>0));
         }
@@ -186,9 +186,10 @@ class WebSocketServer
     {
         if($worker_id == 0){
             $server->tick(59000, function() use ($server, $worker_id) {
-                foreach($server->swooleTable as $key => $row){
-                    $this->log('onTimer '.$key.'-'.json_encode($row));
-                }
+                $this->saveStatisticsData($server);
+                //foreach($server->swooleTable as $key => $row){
+                //    $this->log('onTimer '.$key.'-'.json_encode($row));
+                //}
             });
         }
 
@@ -315,6 +316,27 @@ class WebSocketServer
         }
         $content = '['.date('Y-m-d H:i:s').']'.$content.PHP_EOL;
         file_put_contents($dir, $content, FILE_APPEND);
+    }
+
+    /**
+     * 保存统计数据到db中
+     * @param $server
+     */
+    public function saveStatisticsData($server)
+    {
+        $overdueKeys = array();
+        foreach($server->swooleTable as $key => $row){
+            if(intval(substr($key,-12)) < date('YmdHi',(time()-61))){
+                $this->log('onTimer['.$key.'] '.json_encode($row),'/tmp/swoole_timed.log');
+                array_push($overdueKeys,$key);
+            } else {
+                $this->log('onTimer['.$key.']'.json_encode($row),'/tmp/swoole_time.log');
+            }
+        }
+
+        foreach($overdueKeys as $key){
+            $server->swooleTable->del($key);
+        }
     }
 
 }
