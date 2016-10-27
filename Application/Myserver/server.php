@@ -39,7 +39,7 @@ class WebSocketServer
         $server->set(
             array(
                 'worker_num'    => 4,   //工作进程数量
-                'max_request'   => 1000, //多少次调用后再重启新的进程
+                'max_request'   => 8, //多少次调用后再重启新的进程
                 'daemonize' => true,
                 'log_file' => $this->logDir,
             )
@@ -51,6 +51,7 @@ class WebSocketServer
         $server->on('start',array($this,'onStart'));
         $server->on('managerStart',array($this,'onManagerStart'));
         $server->on('workerStart',array($this,'onWorkerStart'));
+        $server->on('workerStop',array($this,'onWorkerStop'));
         //$server->on('Timer',array($this,'onTimer'));
         $server->on('connect',array($this,'onConnect'));
         $server->on('receive',array($this,'onReceive'));
@@ -199,6 +200,13 @@ class WebSocketServer
         //$this->log('onWorkerStart='.$worker_id);
     }
 
+    //work进程终止时调用
+    public function onWorkerStop($server, $worker_id)
+    {
+        $this->log('onWorkerStop');
+        $this->saveStatisticsData($server);
+    }
+
     //当tcpworker进程处理崩溃的时候出发
     public function handleFatalError($server,$fd)
     {
@@ -325,9 +333,29 @@ class WebSocketServer
     public function saveStatisticsData($server)
     {
         $overdueKeys = array();
+        $conn = new MongoClient("10.211.55.7:27017");
         foreach($server->swooleTable as $key => $row){
-            if(intval(substr($key,-12)) < date('YmdHi',(time()-61))){
+            if(date('YmdHi') - intval(substr($key,-12)) >=2){
+                //here 存储数据到db中，方便查询统计
                 $this->log('onTimer['.$key.'] '.json_encode($row),'/tmp/swoole_timed.log');
+
+                $temp = explode('|',$key);
+                $data = array(
+                    'project'   => $temp[0],
+                    'class'    => $temp[1],
+                    'function' => $temp[2],
+                    'request_ip' => $temp[3],
+                    'server_ip' => current(swoole_get_local_ip()),
+                    'time_minute' => substr($key,-12).'00',
+                    'success_count' => $row['sucess_count'],
+                    'fail_count' => $row['fail_count'],
+                    'success_cost_time' => $row['success_cost_time'],
+                    'fail_cost_time' => $row['fail_cost_time'],
+                );
+
+                $db = $conn->selectDB($data['project']);
+                $collection = $db->selectCollection($data['class']);
+                $collection->insert($data);
                 array_push($overdueKeys,$key);
             } else {
                 $this->log('onTimer['.$key.']'.json_encode($row),'/tmp/swoole_time.log');
