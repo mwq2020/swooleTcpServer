@@ -46,7 +46,7 @@ class WebSocketServer
         );
 
         $server->swooleTable = $swooleTable;
-        $server->usedCount = $atomic;
+        //$server->usedCount = $atomic;
 
         $server->on('start',array($this,'onStart'));
         $server->on('managerStart',array($this,'onManagerStart'));
@@ -67,8 +67,8 @@ class WebSocketServer
 
     public function onReceive($server,$fd,$from_id,$data)
     {
-        $server->usedCount->add(1);//接口调用计数
-        $this->start_timestamp = microtime(true);
+        //$server->usedCount->add(1);//接口调用计数
+        //$this->start_timestamp = microtime(true);
         register_shutdown_function(array($this,'handleFatalError'),$server,$fd);
 
         //$this->log('onReceive');
@@ -99,6 +99,7 @@ class WebSocketServer
         $param_array = $data['param_array'];
         $ip = $server->connection_info($fd)['remote_ip'];
 
+        $process_start_time = microtime(true);
         //sucess_count  fail_count  success_cost_time  fail_cost_time
         $statistics_key = $this->serverName.'|'.$class.'|'.$method.'|'.$ip.'|'.date('YmdHi');
         if(!$server->swooleTable->exist($statistics_key)){
@@ -131,16 +132,21 @@ class WebSocketServer
 
             // 发送数据给客户端，调用成功，data下标对应的元素即为调用结果
             $ret_data = array('code'=>$code, 'flag'=>true, 'msg'=>'ok', 'data'=>$ret);
+            $process_used_time = microtime(true)- $process_start_time;
             $server->swooleTable->incr($statistics_key,'sucess_count',1);
+            $server->swooleTable->incr($statistics_key,'success_cost_time',$process_used_time);
         } catch(\Exception $e) {
             $success = false;
             // 有异常 发送数据给客户端，发生异常，调用失败
             $code = $e->getCode() == 200 ? 2001 : ($e->getCode() ? $e->getCode() : 500);
             $msg = ''.$e;
             $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>$e->getMessage(), 'data'=>$e);
+
+            $process_used_time = microtime(true)- $process_start_time;
             $server->swooleTable->incr($statistics_key,'fail_count',1);
+            $server->swooleTable->incr($statistics_key,'fail_cost_time',$process_used_time);
         }
-        $this->end_timestamp = microtime(true);
+        //$this->end_timestamp = microtime(true);
         try{
             //\Statistics\StatisticClient::report($class,$method,$success,$code,$msg);
         } catch(\Exception $e) {

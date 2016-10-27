@@ -56,14 +56,14 @@ class HttpServer
     //开启master主进程【设置进程的名称】
     public function onStart($server)
     {
-        $this->log('onStart');
+        //$this->log('onStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' master listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
     //开启task进程【设置进程的名称】
     public function onManagerStart($server)
     {
-        $this->log('onManagerStart');
+        //$this->log('onManagerStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' manager listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分{设置主进程的名称}
     }
 
@@ -73,7 +73,7 @@ class HttpServer
         include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
         \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/')->addRoot($this->applicationRoot.'/../../Vendor/')->init();
 
-        $this->log('onWorkerStart');
+        //$this->log('onWorkerStart');
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
     }
 
@@ -121,7 +121,7 @@ class HttpServer
                     break;
             }
         }
-        $this->log('register_shutdown_function');
+        //$this->log('register_shutdown_function');
     }
 
     public static function getInstance()

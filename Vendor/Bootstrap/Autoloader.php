@@ -70,7 +70,7 @@ class Autoloader{
         foreach(static::$sysRoot as $k => $root)
         {
             $classFile = $root.$classPath.'.php';
-            file_put_contents($this->logRoot, "\r\n".$classFile."\r\n", FILE_APPEND);
+            //file_put_contents($this->logRoot, "\r\n".$classFile."\r\n", FILE_APPEND);
             if(is_file($classFile))
             {
                 require_once($classFile);
