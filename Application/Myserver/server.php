@@ -359,8 +359,8 @@ class WebSocketServer
                     'fail_cost_time' => $row['fail_cost_time'],
                 );
 
-                $db = $conn->selectDB($data['project']);
-                $collection = $db->selectCollection($data['class']);
+                $db = $conn->selectDB($data['project_name']);
+                $collection = $db->selectCollection($data['class_name']);
                 $collection->insert($data);
                 array_push($overdueKeys,$key);
             } else {
