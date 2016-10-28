@@ -347,9 +347,9 @@ class WebSocketServer
 
                 $temp = explode('|',$key);
                 $data = array(
-                    'project'   => $temp[0],
-                    'class'    => $temp[1],
-                    'function' => $temp[2],
+                    'project_name'   => $temp[0],
+                    'class_name'    => $temp[1],
+                    'function_name' => $temp[2],
                     'request_ip' => $temp[3],
                     'server_ip' => current(swoole_get_local_ip()),
                     'time_minute' => substr($key,-12).'00',
