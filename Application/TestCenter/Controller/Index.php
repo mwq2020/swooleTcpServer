@@ -75,6 +75,7 @@ class Index extends Base
         $config = (array) new \Config\Test();
         $this->assign('apiList',$config['apiList']);
         $this->assign('requestData',$this->request);
+        //print_r($this->request);
 
         $time_start = microtime(true);
 

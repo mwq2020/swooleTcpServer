@@ -1,62 +1,47 @@
 <?php
 
 try{
-    $conn = new MongoClient("10.211.55.7:27017"); #连接指定端口远程主机
+    //$conn = new MongoClient("10.211.55.7:27017"); #连接指定端口远程主机
+    //$conn = new MongoClient("127.0.0.1:27017"); #连接指定端口远程主机
 
-    //获取当前示例里面的数据库
-    //$dbs = $conn->listDBs();
-    //print_r($dbs);
-
-//    $data = array(
-//        'module'    => 'club',
-//        'interface' => 'getClubList',
-//        'cost_time' => '0.05',
-//        'success'   => true,
-//        'time'      => date('Y-m-d H:i:s'),
-//        'code'      => 200,
-//    );
-//
-//    $module     = $data['module'];
-//    $interface  = $data['interface'];
-//    $cost_time  = $data['cost_time'];
-//    $success    = $data['success'];
-//    $time       = $data['time'];
-//    $code       = $data['code'];
-
-//    $db = $conn->selectDB($module);
-//    $collection = $db->selectCollection($interface);
-//    $flag = $collection->insert($data);
-//    if(!empty($flag)){
-//        echo "入库成功\r\n";
-//    } else {
-//        echo "入库失败\r\n";
-//    }
-//    var_dump($flag);
-
-
-    $dbList = $conn->listDBs();
-    print_r($dbList);
-
-    $db = $conn->selectDB('MyServer');
-
-//    $collections = $db->getCollectionNames();
-//    foreach ($collections as $collection) {
-//        echo "amount of documents in $collection: ";
-//        //echo $collection->count(), "\n";
-//    }
-    $collection = $db->selectCollection('Test');
-
-
-    //print_r($conn->getConnections());
-    //print_r($collection->find());
-
-
-    $keys = array("class" => 1);
-    $initial = array("functions" => array());
-    $reduce = "function (obj, prev) { prev.items.push(obj.function); }";
-    $g = $collection->group($keys, $initial, $reduce);
-    //echo json_encode($g['retval']);
+    $mongo = new MyMongo();
+    //$mongo->group();
+    $list = $mongo->find('Myserver','Test',array('function_name'=>'testDb'));
 
 } catch(exception $e){
     echo ''.$e;
+}
+
+
+
+class MyMongo
+{
+    public $conn = null;
+    public function __construct()
+    {
+        $this->conn = new MongoClient("127.0.0.1:27017"); #连接指定端口远程主机
+    }
+
+    public function group()
+    {
+        $db = $this->conn->selectDB('MyServer');
+        $collection = $db->selectCollection('Test');
+        $keys = array("class_name" => 1);
+        $initial = array("function_names" => array());
+        $reduce = "function (obj, prev) { prev.function_names.push(obj.function_name); }";
+        $g = $collection->group($keys, $initial, $reduce);
+        echo json_encode($g['retval']);
+    }
+
+    public function find($dbName,$collectionName,$where)
+    {
+
+        $collection = $this->conn->selectDB($dbName)->selectCollection($collectionName);
+        $cursor = $collection->find();
+        while( $cursor->hasNext() ) {
+            var_dump( $cursor->getNext() );
+        }
+        print_r($where);
+        print_r($collection);
+    }
 }

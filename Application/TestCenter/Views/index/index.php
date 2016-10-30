@@ -33,19 +33,18 @@
             </div>
 
             <div class="col-md-12 column list_item" id="argv_list">
-                <div class="list_item">
-                    <span class="list_title">参数</span>
-                    <input name="argv[]" class="argv_list" value="<?php if(isset($requestData['argv'][0])){ echo $requestData['argv'][0]; }?>"/> <span class="drop_argv_button">【-】</span>
-                </div>
-
-                <?php if($request && isset($requestData['argv']) && count($requestData['argv']) > 1) : ?>
+                <?php if(isset($requestData['argv']) && count($requestData['argv']) >= 1) : ?>
                     <?php foreach($requestData['argv'] as $argv_key => $argv_val): ?>
-                        <?php if($argv_key == 0){ continue; } ?>
                         <div class="list_item">
                             <span class="list_title">参数</span>
                             <input name="argv[]" class="argv_list" value="<?php echo $argv_val; ?>" init_val="<?php echo $argv_val; ?>"/> <span class="drop_argv_button">【-】</span>
                         </div>
                     <?php endforeach;?>
+                 <?php else: ?>
+                    <div class="list_item">
+                        <span class="list_title">参数</span>
+                        <input name="argv[]" class="argv_list" value="<?php if(isset($requestData['argv'][0])){ echo $requestData['argv'][0]; }?>"/> <span class="drop_argv_button">【-】</span>
+                    </div>
                 <?php endif;?>
             </div>
 

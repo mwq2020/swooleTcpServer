@@ -339,7 +339,8 @@ class WebSocketServer
     public function saveStatisticsData($server)
     {
         $overdueKeys = array();
-        $conn = new MongoClient("10.211.55.7:27017");
+        //$conn = new MongoClient("10.211.55.7:27017");
+        $conn = new MongoClient("127.0.0.1:27017");
         foreach($server->swooleTable as $key => $row){
             if(date('YmdHi') - intval(substr($key,-12)) >=2){
                 //here 存储数据到db中，方便查询统计
