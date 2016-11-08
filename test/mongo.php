@@ -6,7 +6,8 @@ try{
 
     $mongo = new MyMongo();
     //$mongo->group();
-    $list = $mongo->find('Myserver','Test',array('function_name'=>'testDb'));
+    $list = $mongo->find('MyServer','Test',array('function_name'=>'testDb',"success_count"=>array('$gt' => 1,'$lt' => 17)));
+    print_r($list);
 
 } catch(exception $e){
     echo ''.$e;
@@ -35,13 +36,12 @@ class MyMongo
 
     public function find($dbName,$collectionName,$where)
     {
-
         $collection = $this->conn->selectDB($dbName)->selectCollection($collectionName);
-        $cursor = $collection->find();
+        $cursor = $collection->find($where);
+        $result = array();
         while( $cursor->hasNext() ) {
-            var_dump( $cursor->getNext() );
+            array_push($result,$cursor->getNext());
         }
-        print_r($where);
-        print_r($collection);
+        return $result;
     }
 }
