@@ -32,9 +32,6 @@ class WebSocketServer
         $swooleTable->column('fail_cost_time', swoole_table::TYPE_FLOAT);    //失败耗费的总时间
         $swooleTable->create();
 
-        //原子技术
-        $atomic = new \swoole_atomic(0);
-
         $server = new swoole_server($this->serverHost, $this->serverPort);
         $server->set(
             array(
@@ -46,8 +43,6 @@ class WebSocketServer
         );
 
         $server->swooleTable = $swooleTable;
-        //$server->usedCount = $atomic;
-
         $server->on('start',array($this,'onStart'));
         $server->on('managerStart',array($this,'onManagerStart'));
         $server->on('workerStart',array($this,'onWorkerStart'));
@@ -61,8 +56,7 @@ class WebSocketServer
         $this->serverObj = $server;
         $server->start();
 
-        swoole_server_addtimer($server,40);
-
+        //swoole_server_addtimer($server,40);
     }
 
     public function onReceive($server,$fd,$from_id,$data)
