@@ -2,5 +2,6 @@
 /**
  * 统计页面的入口
  */
-
-defined('STATISTICS_ROOT') OR define('STATISTICS_ROOT', realpath(__DIR__.'/../'));
+echo "this is a test page index";
+echo "<hr>";
+echo "welcome to my statistics page";

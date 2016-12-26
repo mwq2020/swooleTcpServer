@@ -23,18 +23,12 @@ class StatisticsWebServer
     }
 
     /**
-     * server start的时候调用
+     * server start的时候调用 设置主进程名称
      * @param unknown $serv
      */
     public function onStart($serv)
     {
-        //设置主进程名称
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' master listen['.$this->serverHost.':'.$this->serverPort.']');
-
-        //echo "\033[1A\n\033[K-----------------------\033[47;30m SWOOLE \033[0m-----------------------------\n\033[0m";
-        //echo 'swoole version:' . swoole_version() . "          PHP version:".PHP_VERSION."\n";
-        //echo "------------------------\033[47;30m WORKERS \033[0m---------------------------\n";
-        //echo "\033[47;30mMasterPid\033[0m", str_pad('', self::$_maxMasterPidLength + 2 - strlen('MasterPid')), "\033[47;30mManagerPid\033[0m", str_pad('', self::$_maxManagerPidLength + 2 - strlen('ManagerPid')), "\033[47;30mWorkerId\033[0m", str_pad('', self::$_maxWorkerIdLength + 2 - strlen('WorkerId')),  "\033[47;30mWorkerPid\033[0m\n";
     }
     /**
      * worker start时调用
@@ -69,42 +63,41 @@ class StatisticsWebServer
      */
     public function onRequest($request, $response)
     {
-        //$_GET = $_POST = $_COOKIE = array();
-//        $resp = \Core\Response::getInstance($response);
-//        $resp->setResponse($response);
-//        if (isset($request->get)) {
-//            $_GET = $request->get;
-//        }
-//        if (isset($request->post)) {
-//            $_POST = $request->post;
-//        }
-//        if (isset($request->cookie)) {
-//            $_COOKIE = $request->cookie;
-//        }
-
         //处理页面数据
         if ($request->server['path_info'] == '/favicon.ico' || $request->server['request_uri'] == '/favicon.ico') {
             return $response->end();
         }
+        $mimeList = (new \Config\Mime())->mimeList;
 
+        $pathInfo = $request->server['path_info'];
+        $requestUri = $request->server['request_uri'];
+        $path_parts = pathinfo($pathInfo);
 
-        $result = 'aaaa';
-        file_put_contents('/tmp/swoole.log',print_r($request->server,true),FILE_APPEND);
-
-        $response->write($result);
-        return $response->end();
-
-        //处理静态文件
+        if(isset($path_parts['extension']) && !empty($path_parts['extension']) && isset($mimeList[$path_parts['extension']]))
+        {
+            $filePath = __DIR__.'/Web/'.trim($pathInfo,"/");
+            //file_put_contents('/tmp/swoole.log',"\r\n 【filePath】".$filePath,FILE_APPEND);
+            if(file_exists($filePath)){
+                $response->status('200');
+                $response->header("Content-Type", $mimeList[$path_parts['extension']]);
+                $fileContent = file_get_contents($filePath);
+                $response->write($fileContent);
+            } else {
+                $response->status('404');
+                $response->write('file notFound');
+            }
+            return $response->end();
+        }
+        //file_put_contents('/tmp/swoole.log',"\r\n 【server】".print_r($request->server,true),FILE_APPEND);
 
         //$response->header("Content-Type",'text/html');
         $response->header("Content-Type", "text/html;charset=utf-8");
         $response->header('Connection','keep-alive');
-        //$response->header('Content-Length',strlen($result));
 
         //处理php的逻辑
         try {
             ob_start();
-            include APPLICATION_PATH.'/Web/index.php';
+            include __DIR__.'/Web/index.php';
             $result = ob_get_contents();
             ob_end_clean();
             $response->header("Content-Type", "text/html;charset=utf-8");
