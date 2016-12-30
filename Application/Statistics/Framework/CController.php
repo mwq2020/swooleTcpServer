@@ -83,15 +83,9 @@ class CController
         }
 
         $this->template->useLayout = $this->useLayout;
-        $this->template->current_template_file = $templateName;
         $this->template->actionName = $this->actionShortName;
         $this->template->controllerName = $this->called_class;
-
-        //if(!empty($templateName)){
-        //    $this->template->templatePath = $templateName;
-        //} else {
-        //    $this->template->templatePath = $this->templatePath;
-        //}
+        $this->template->current_template_file = $templateName;
         $this->template->layoutPath = '/layout/layout.php';
         $this->template->display($templateName);
     }

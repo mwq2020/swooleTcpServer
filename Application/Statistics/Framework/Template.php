@@ -114,15 +114,20 @@ class Template
         echo $this->fetch($tpl);
     }
 
-    public function fetch($tpl, $withLayout = true)
+    public function fetch($tpl = '', $withLayout = true)
     {
         if(empty($this->templatePath)){
             $this->templatePath = dirname(__DIR__).'/Views/';
         }
+        $tplRelativePath = $tpl;
         if($withLayout){
-            $tpl = $this->actionName."/".$tpl.".php";
+            if($tpl){
+                $tplRelativePath = $this->controllerName."/".$tpl.".php";
+            } else {
+                $tplRelativePath = $this->controllerName."/".$this->actionName.".php";
+            }
         }
-        $result = $this->template($tpl, $realpath);
+        $result = $this->template($tplRelativePath, $realpath);
         if (!$result) {
             return $this->error('Template file 【"'.$realpath.'"】 not found!');
         }

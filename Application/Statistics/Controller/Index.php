@@ -39,6 +39,11 @@ class Index extends \Framework\CController
         return $this->display('index');
     }
 
+    public function actionTest()
+    {
+        return $this->display('test');
+    }
+
 
     function formatTime($time)
     {
