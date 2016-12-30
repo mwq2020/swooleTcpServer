@@ -122,7 +122,7 @@ class StatisticsWorker
     {
         if (empty($this->mongo) || !$this->mongo->getHosts()) {
             $config =\Config\Mongo::getConfig();
-            $this->log(json_encode($config));
+            //$this->log(json_encode($config));
             $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
         }
         return $this->mongo;

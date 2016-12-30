@@ -65,7 +65,7 @@ class StatisticsWebServer
     {
         //处理页面数据
         if ($request->server['path_info'] == '/favicon.ico' || $request->server['request_uri'] == '/favicon.ico') {
-            return $response->end();
+            return $response->end('');
         }
         $mimeList = (new \Config\Mime())->mimeList;
 

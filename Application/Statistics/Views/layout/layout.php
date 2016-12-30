@@ -20,7 +20,7 @@
     <link rel="shortcut icon" href="/assets/img/favicon.png">
     <script type="text/javascript" src="/assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="/assets/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="/assets/js/scripts.js"></script>
+    <!--<script type="text/javascript" src="/assets/js/scripts.js"></script>-->
     <script type="text/javascript" src="/assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="/assets/js/highcharts.js"></script>
 </head>
