@@ -8,13 +8,14 @@ class Template
 {
 
     public $controllerName;  //控制器名称
-    public $ActionName;      //方法名称
+    public $actionName;      //方法名称
+    protected $current_template_file;  //当前的模板文件
+
     public $request;         //方法名称
     public $useLayout;       //是否使用layout
     public $templatePath;    //模板的目录
     public $viewPath;        //模板根目录
     public $layoutPath;      //layout地址
-    protected $current_template_file;  //当前的模板文件
 
     public $tpl_vars = array(); //存储模板变量对象
 
@@ -88,13 +89,16 @@ class Template
 
     public function template($tpl, &$realpath='')
     {
-        $filePath = $this->viewPath . $tpl . '.php';
+        if(empty($this->viewPath)){
+            $this->viewPath = dirname(__DIR__).'/Views/';
+        }
+        $filePath = $this->viewPath ."/". $tpl . '.php';
+        //echo $filePath;
         if (!file_exists($filePath)) {
             $filePath = $this->viewPath . $tpl;
         }
         $realpath = $filePath;
         if (file_exists($filePath) && is_readable($filePath)) {
-            $this->current_template_file = $filePath;
             return $filePath;
         }
         return false;
@@ -107,16 +111,22 @@ class Template
      */
     public function display($tpl = '')
     {
-        $tpl = !empty($tpl) ? $tpl : $this->templatePath;
         echo $this->fetch($tpl);
     }
 
     public function fetch($tpl, $withLayout = true)
     {
+        if(empty($this->templatePath)){
+            $this->templatePath = dirname(__DIR__).'/Views/';
+        }
+        if($withLayout){
+            $tpl = $this->actionName."/".$tpl.".php";
+        }
         $result = $this->template($tpl, $realpath);
         if (!$result) {
-            return $this->error('Template "'.$realpath.'" not found!');
+            return $this->error('Template file 【"'.$realpath.'"】 not found!');
         }
+
         extract($this->tpl_vars);
         ob_start();
         include $result;
@@ -124,9 +134,9 @@ class Template
         $this->assign('content',$content);
 
         if ($this->useLayout){
-            $layout = empty($this->layoutPath) ? '/layout/layout.php' : $this->layoutPath;
+            $layout = empty($this->layoutPath) ? 'layout/layout.php' : trim($this->layoutPath,"/");
             $this->useLayout = false;
-            $content = $this->fetch($layout);
+            $content = $this->fetch($layout,false);
         }
         echo $content;
     }
