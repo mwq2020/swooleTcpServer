@@ -19,7 +19,7 @@
                     type: 'spline'
                 },
                 title: {
-                    text: '<?php //echo "$date $interface_name";?>---  请求量曲线'
+                    text: '<?php echo $statistics_title;?>  请求量曲线'
                 },
                 subtitle: {
                     text: ''
@@ -77,7 +77,7 @@
                     type: 'spline'
                 },
                 title: {
-                    text: '<?php //echo "$date $interface_name";?>  ++++请求耗时曲线'
+                    text: '<?php echo $statistics_title;?>  请求耗时曲线'
                 },
                 subtitle: {
                     text: ''
@@ -130,15 +130,6 @@
                     }			]
             });
         </script>
-        <table class="table table-hover table-condensed table-bordered">
-            <thead>
-            <tr>
-                <th>时间</th><th>调用总数</th><th>平均耗时</th><th>成功调用总数</th><th>成功平均耗时</th><th>失败调用总数</th><th>失败平均耗时</th><th>成功率</th>
-            </tr>
-            </thead>
-            <tbody>
-            <?php //echo $table_data;?>
-            </tbody>
-        </table>
+
     </div>
 </div>

@@ -50,10 +50,19 @@ class StatisticsWorker
         $swooleTable->column('fail_cost_time', swoole_table::TYPE_FLOAT);    //失败耗费的总时间
         $swooleTable->create();
 
+        //sucess_count  fail_count  success_cost_time  fail_cost_time
+        $allTable = new \swoole_table(128); //最大存储1024行 指定的时候只能指定2的指数列
+        $allTable->column('sucess_count', swoole_table::TYPE_INT, 8);     //成功调用次数
+        $allTable->column('fail_count', swoole_table::TYPE_INT, 8);       //失败调用次数
+        $allTable->column('success_cost_time', swoole_table::TYPE_FLOAT); //成功耗费的总时间
+        $allTable->column('fail_cost_time', swoole_table::TYPE_FLOAT);    //失败耗费的总时间
+        $allTable->create();
+
         $serv = new \swoole_server($ip, $port, $mode, $type);	//处理客户端发送的数据 55656
         //$serv->addlistener('0.0.0.0', $this->handleProviderPort, SWOOLE_SOCK_TCP|SWOOLE_SOCK_UDP); //处理统计页面请求的数据 55858
         //$serv->addlistener('0.0.0.0', $this->udpFinderport, SWOOLE_SOCK_UDP); //recv udp broadcast 55859
-        $serv->swooleTable = $swooleTable; //统计技术表
+        $serv->swooleTable = $swooleTable; //统计技术表(单个接口统计)
+        $serv->allTable = $allTable; //统计技术表（全局）
         $serv->set(array(
                 'worker_num'    => 2,   //工作进程数量
                 'max_request'   => 8, //多少次调用后再重启新的进程
@@ -161,39 +170,64 @@ class StatisticsWorker
     {
         $this->log('saveStatisticsData in');
 
+        //单个接口流量、耗时统计记录
         $overdueKeys = array();
         $conn = $this->getMongo();
         foreach($server->swooleTable as $key => $row){
-            if(date('YmdHi') - intval(substr($key,-12)) >=2) {
+            $timestamp = substr($key,-10);
+            if((time() - $timestamp) >= 90) {
                 $temp = explode('|',$key);
                 $data = array(
                     'project_name'  => $temp[0],
                     'class_name'    => $temp[1],
                     'function_name' => $temp[2],
                     'request_ip'    => $temp[3],
-                    'server_ip'     => current(swoole_get_local_ip()),
-                    'time_minute'   => substr($key,-12).'00',
+                    'local_server_ip'     => current(swoole_get_local_ip()),
+                    'timestamp'   => $timestamp,
+                    'time_minute'   => date('Y-m-d H:i:s',$timestamp),
                     'success_count' => $row['sucess_count'],
                     'fail_count'    => $row['fail_count'],
                     'success_cost_time' => $row['success_cost_time'],
                     'fail_cost_time'    => $row['fail_cost_time'],
                 );
-
-                //$db = $conn->selectDB($data['project_name']);
-                //$collection = $db->selectCollection($data['class_name']);
-
                 $db = $conn->selectDB('Statistics');
                 $collection = $db->selectCollection($data['project_name']);
 
                 $collection->insert($data);
                 array_push($overdueKeys,$key);
             } else {
-                $this->log('onTimer ['.$key.'] is not time to save');
+                $this->log('onTimer api ['.$key.'<-->'.date('Y-m-d H:i:s',$timestamp).'] is not time to save');
             }
         }
-
-        foreach($overdueKeys as $key){
+        foreach($overdueKeys as $keyNum => $key){
             $server->swooleTable->del($key);
+            unset($overdueKeys[$keyNum]);
+        }
+
+        //全局流量、耗时统计记录
+        foreach($server->allTable as $key => $row){
+            if((time() - $key) >= 90) {
+                $data = array(
+                    'local_server_ip'     => current(swoole_get_local_ip()),
+                    'timestamp'   => $key,
+                    'time_minute'   => date('Y-m-d H:i:s',$key),
+                    'success_count' => $row['sucess_count'],
+                    'fail_count'    => $row['fail_count'],
+                    'success_cost_time' => $row['success_cost_time'],
+                    'fail_cost_time'    => $row['fail_cost_time'],
+                );
+
+                $db = $conn->selectDB('Statistics');
+                $collection = $db->selectCollection('All_Statistics');
+                $collection->insert($data);
+                array_push($overdueKeys,$key);
+            } else {
+                $this->log('onTimer allplatform ['.$key.'<-->'.date('Y-m-d H:i:s',$key).'] is not time to save');
+            }
+        }
+        foreach($overdueKeys as $keyNum => $key){
+            $server->allTable->del($key);
+            unset($overdueKeys[$keyNum]);
         }
     }
 
@@ -229,7 +263,8 @@ class StatisticsWorker
             $msg            = $data['msg']; //日志消息
             $ip = $serv->connection_info($fd)['remote_ip'];//当前链接进来的ip
 
-            $statistics_key = $projectName.'|'.$className.'|'.$functionName.'|'.$ip.'|'.date('YmdHi');
+            //单一接口流量、耗时统计记录
+            $statistics_key = $projectName.'|'.$className.'|'.$functionName.'|'.$ip.'|'.(strtotime(date('Y-m-d H:i:00'))+60);
             if(!$serv->swooleTable->exist($statistics_key)){
                 if($success){
                     $serv->swooleTable->set($statistics_key,array('sucess_count'=>1,'fail_count'=>0,'success_cost_time'=>$cost_time,'fail_cost_time'=>0));
@@ -243,6 +278,24 @@ class StatisticsWorker
                 } else {
                     $serv->swooleTable->incr($statistics_key,'fail_count',1);
                     $serv->swooleTable->incr($statistics_key,'fail_cost_time',$cost_time);
+                }
+            }
+
+            //全局流量、耗时统计记录
+            $all_statistics_key = strtotime(date('Y-m-d H:i:00'))+60;
+            if(!$serv->allTable->exist($all_statistics_key)){
+                if($success){
+                    $serv->allTable->set($all_statistics_key,array('sucess_count'=>1,'fail_count'=>0,'success_cost_time'=>$cost_time,'fail_cost_time'=>0));
+                } else {
+                    $serv->allTable->set($all_statistics_key,array('sucess_count'=>0,'fail_count'=>1,'success_cost_time'=>0,'fail_cost_time'=>$cost_time));
+                }
+            } else {
+                if($success){
+                    $serv->allTable->incr($all_statistics_key,'sucess_count',1);
+                    $serv->allTable->incr($all_statistics_key,'success_cost_time',$cost_time);
+                } else {
+                    $serv->allTable->incr($all_statistics_key,'fail_count',1);
+                    $serv->allTable->incr($all_statistics_key,'fail_cost_time',$cost_time);
                 }
             }
 
