@@ -183,7 +183,7 @@ class StatisticsWorker
                     'function_name' => $temp[2],
                     'request_ip'    => $temp[3],
                     'local_server_ip'     => current(swoole_get_local_ip()),
-                    'timestamp'   => $timestamp,
+                    'time_stamp'   => $timestamp*1,
                     'time_minute'   => date('Y-m-d H:i:s',$timestamp),
                     'success_count' => $row['sucess_count'],
                     'fail_count'    => $row['fail_count'],
@@ -209,7 +209,7 @@ class StatisticsWorker
             if((time() - $key) >= 90) {
                 $data = array(
                     'local_server_ip'     => current(swoole_get_local_ip()),
-                    'timestamp'   => $key,
+                    'time_stamp'   => $key*1,
                     'time_minute'   => date('Y-m-d H:i:s',$key),
                     'success_count' => $row['sucess_count'],
                     'fail_count'    => $row['fail_count'],

@@ -15,14 +15,14 @@ class Index extends \Framework\CController
 
         $db = $mongo->selectDB('Statistics');
         $collection = $db->selectCollection('All_Statistics');
-        $list = $collection->find(array("timestamp" => array('$gt'=>$start_timestamp,'$lt'=>$end_timestamp)))->skip(0);
+        $list = $collection->find(array("time_stamp" => array('$gt'=>$start_timestamp,'$lt'=>$end_timestamp)))->skip(0);
 
         $success_series_data = [];
         $fail_series_data = [];
         $success_time_series_data = [];
         $fail_time_series_data = [];
         foreach($list as $row){
-            $timestamp = $row['timestamp'];
+            $timestamp = $row['time_stamp'];
             $success_series_data[$timestamp]  = "[".($timestamp*1000).",{$row['success_count']}]";
             $fail_series_data[$timestamp]     = "[".($timestamp*1000).",{$row['fail_count']}]";
             $success_time_series_data[$timestamp] = "[".($timestamp*1000).",{$row['success_cost_time']}]";
