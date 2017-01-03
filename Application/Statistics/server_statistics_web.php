@@ -78,16 +78,28 @@ class StatisticsWebServer
             $filePath = __DIR__.'/Web/'.trim($pathInfo,"/");
             //file_put_contents('/tmp/swoole.log',"\r\n 【filePath】".$filePath,FILE_APPEND);
             if(file_exists($filePath)){
-                $response->status('200');
+                $response->status(200);
                 $response->header("Content-Type", $mimeList[$path_parts['extension']]);
                 $fileContent = file_get_contents($filePath);
                 $response->write($fileContent);
             } else {
-                $response->status('404');
+                $response->status(404);
                 $response->write('file notFound');
             }
             return $response->end();
         }
+
+
+        if (isset($request->get)) {
+            $_GET = $request->get;
+        }
+        if (isset($request->post)) {
+            $_POST = $request->post;
+        }
+        if (isset($request->cookie)) {
+            $_COOKIE = $request->cookie;
+        }
+
         //file_put_contents('/tmp/swoole.log',"\r\n 【server】".print_r($request->server,true),FILE_APPEND);
 
         //$response->header("Content-Type",'text/html');
@@ -100,13 +112,15 @@ class StatisticsWebServer
             include __DIR__.'/Web/index.php';
             $result = ob_get_contents();
             ob_end_clean();
-            $response->header("Content-Type", "text/html;charset=utf-8");
-            $result = empty($result) ? '' : $result;
-            $response->status('200');
-            $response->end($result);
+            if($response){
+                $response->header("Content-Type", "text/html;charset=utf-8");
+                $result = empty($result) ? '' : $result;
+                $response->status(200);
+                $response->end($result);
+            }
             unset($result);
         } catch (Exception $e) {
-            $response->status('500');
+            $response->status(500);
             $result = $e->getMessage();
             $response->end($result);
             unset($result);

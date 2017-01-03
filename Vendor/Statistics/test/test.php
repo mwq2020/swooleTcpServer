@@ -1,9 +1,18 @@
 <?php
 include_once __DIR__.'/../StatisticClient.php';
 
-$project_name = 'my_test_project';
-$class_name = 'my_class';
-$function_name = 'my_function';
+//$project_name = 'my_test_project';
+//$class_name = 'my_class';
+//$function_name = 'my_function';
+//$cost_time = mt_rand(1,20);
+//$is_success=true;
+//$code=200;
+//$msg='mwq_test';
+
+
+$project_name = 'Club';
+$class_name = 'Activiry';
+$function_name = 'getActvityList';
 $cost_time = mt_rand(1,20);
 $is_success=true;
 $code=200;

@@ -20,7 +20,8 @@ class CController
 
     public $get;
     public $post;
-    public $request;
+    public $request;//请求
+    public $response;//响应
 
     public $called_class;
     //public $called_method;
@@ -89,4 +90,33 @@ class CController
         $this->template->layoutPath = '/layout/layout.php';
         $this->template->display($templateName);
     }
+
+    /**
+     * 页面跳转
+     */
+    public function redirect($url)
+    {
+        $this->response->header("Location", $url);
+        $this->response->status(302);
+        return $this->response->end('');
+    }
+
+    /**
+     * 程序终止，直接输出传入内容
+     */
+    public function exitOut($content)
+    {
+        $this->response->header("Content-Type", "text/html;charset=utf-8");
+        ob_start();
+        if(is_array($content) || is_object($content)){
+            var_dump($content);
+        } else {
+            echo $content;
+        }
+        $contentStr = ob_get_clean();
+        $result = empty($contentStr) ? '' : $contentStr;
+        $this->response->status(200);
+        $this->response->end($result);
+    }
+
 }

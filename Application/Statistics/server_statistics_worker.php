@@ -304,6 +304,7 @@ class StatisticsWorker
             if(!empty($mongoHander)) {
                 $data['remote_ip'] = $ip;
                 $data['msg'] = $msg;
+                $data['add_time'] = time();
                 $monogoDb = $mongoHander->selectDB('StatisticsLog');
                 $mongoCollection = $monogoDb->selectCollection($projectName);
                 $mongoCollection->insert($data);

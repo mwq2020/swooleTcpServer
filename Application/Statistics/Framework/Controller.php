@@ -21,12 +21,6 @@ class Controller
      */
     public function Run()
     {
-        //echo "this is a runing swoole servre";
-
-        //echo "<pre>";
-        //print_r($this->request->server);
-
-        //$pathInfo = $this->request->server['path_info'];
         $requestUri = $this->request->server['request_uri'];
         $this->processRoute($requestUri);
         echo $this->dealRequest();
@@ -42,6 +36,8 @@ class Controller
             //ob_start();
             $controllerSpaceName = "\\Controller\\{$this->_controllerName}";
             $controller = new $controllerSpaceName;
+            $controller->request = $this->request;
+            $controller->response = $this->response;
             $controller->controllerName = $this->_controllerName;
             $controller->actionName     = $this->_actionName;
             $controller->actionShortName     = $this->_actionShortName;

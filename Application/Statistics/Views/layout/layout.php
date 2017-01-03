@@ -30,19 +30,19 @@
         <div class="col-md-12 column">
             <ul class="nav nav-tabs">
                 <li>
-                    <a href="http://<?php echo isset($_SERVER['HTTP_HOST']) ? strchr($_SERVER['HTTP_HOST'],':',true) : ''; ?>:55757">概述</a>
+                    <a href="http://127.0.0.1:55757">概述</a>
                 </li>
                 <li>
-                    <a href="http://<?php echo isset($_SERVER['HTTP_HOST']) ? strchr($_SERVER['HTTP_HOST'],':',true) : ''; ?>:55757/?fn=statistic">监控</a>
+                    <a href="http://127.0.0.1:55757/statistic/index">监控</a>
                 </li>
                 <li>
-                    <a href="http://<?php echo isset($_SERVER['HTTP_HOST']) ? strchr($_SERVER['HTTP_HOST'],':',true) : ''; ?>:55757/?fn=logger">日志</a>
+                    <a href="http://127.0.0.1:55757/logger/index">日志</a>
                 </li>
                 <li class="disabled">
-                    <a href="">告警</a>
+                    <a href="http://127.0.0.1:55757">告警</a>
                 </li>
                 <li class="active">
-                    <a id="testPage" href="<?php echo isset($_SERVER['HTTP_HOST']) ? strchr($_SERVER['HTTP_HOST'],':',true) : ''; ?>:2020">调试界面</a>
+                    <a id="testPage" href="http://127.0.0.1:2020">调试界面</a>
                 </li>
             </ul>
         </div>

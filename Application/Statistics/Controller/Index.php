@@ -7,6 +7,9 @@ class Index extends \Framework\CController
     //入口
     public function actionIndex()
     {
+        //return $this->exitOut('http://127.0.0.1:55757/logger/index');
+        //return $this->exitOut(array('aaaa' => 'bbbb','cccc'=>'ddddd'));
+
         $config =\Config\Mongo::getConfig();
         $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
 
@@ -25,8 +28,12 @@ class Index extends \Framework\CController
             $timestamp = $row['time_stamp'];
             $success_series_data[$timestamp]  = "[".($timestamp*1000).",{$row['success_count']}]";
             $fail_series_data[$timestamp]     = "[".($timestamp*1000).",{$row['fail_count']}]";
-            $success_time_series_data[$timestamp] = "[".($timestamp*1000).",{$row['success_cost_time']}]";
-            $fail_time_series_data[$timestamp]    = "[".($timestamp*1000).",{$row['fail_cost_time']}]";
+            if($row['success_count'] > 0){
+                $success_time_series_data[$timestamp] = "[".($timestamp*1000).",".($row['success_cost_time']/$row['success_count'])."]";
+            }
+            if($row['fail_count'] > 0){
+                $fail_time_series_data[$timestamp]    = "[".($timestamp*1000).",".($row['fail_cost_time']/$row['fail_count'])."]";
+            }
         }
         for($i = $start_timestamp; $i < $end_timestamp; $i += 60){
             if(!isset($success_series_data[$i])){
@@ -52,12 +59,5 @@ class Index extends \Framework\CController
     {
         return $this->display('test');
     }
-
-
-    function formatTime($time)
-    {
-        return substr($time,0,4)."-".substr($time,4,2)."-".substr($time,6,2)." ".substr($time,8,2).":".substr($time,10,2).":".substr($time,12,2);
-    }
-
 
 }
