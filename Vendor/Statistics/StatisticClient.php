@@ -34,13 +34,14 @@ class StatisticClient
 	 * @param $project_name   // 项目名称
 	 * @param $class_name     // 调用的类名
 	 * @param $function_name  // 调用的函数名
+	 * @param $args          // 传参
 	 * @param $cost_time      // service执行花费的时间
 	 * @param bool|true $is_success  //是否成功
 	 * @param int $code       // 服务的状态码（错误的状态码统计使用）
 	 * @param string $msg     // 报错服务堆栈信息（方便根据错误信息调试代码）
 	 * @return bool
 	 */
-	public static function serviceApiReport($project_name, $class_name, $function_name, $cost_time, $is_success=true, $code=200, $msg='')
+	public static function serviceApiReport($project_name, $class_name, $function_name, $args,$cost_time, $is_success=true, $code=200, $msg='')
 	{
 		$report_address = '127.0.0.1:55656';
 
@@ -49,6 +50,7 @@ class StatisticClient
 			'project_name' => $project_name,
 			'class_name' => $class_name,
 			'function_name' => $function_name,
+			'args' => $args,
 			'cost_time' => $cost_time,
 			'is_success' => $is_success,
 			'code' => $code,

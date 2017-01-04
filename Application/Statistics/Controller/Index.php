@@ -41,6 +41,10 @@ class Index extends \Framework\CController
                 $fail_time_series_data[$i]    = "[".($i*1000).",0]";
             }
         }
+        ksort($success_series_data);
+        ksort($fail_series_data);
+        ksort($success_time_series_data);
+        ksort($fail_time_series_data);
 
         $success_series_data = implode(',', $success_series_data);
         $fail_series_data = implode(',', $fail_series_data);

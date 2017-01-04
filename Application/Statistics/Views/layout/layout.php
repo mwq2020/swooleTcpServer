@@ -29,19 +29,19 @@
     <div class="row clearfix">
         <div class="col-md-12 column">
             <ul class="nav nav-tabs">
-                <li>
+                <li <?php if($this->controllerName == 'index'): ?>class="active"<?php endif; ?> >
                     <a href="http://127.0.0.1:55757">概述</a>
                 </li>
-                <li>
+                <li <?php if($this->controllerName == 'statistic'): ?>class="active"<?php endif; ?> >
                     <a href="http://127.0.0.1:55757/statistic/index">监控</a>
                 </li>
-                <li>
+                <li <?php if($this->controllerName == 'logger'): ?>class="active"<?php endif; ?> >
                     <a href="http://127.0.0.1:55757/logger/index">日志</a>
                 </li>
                 <li class="disabled">
                     <a href="http://127.0.0.1:55757">告警</a>
                 </li>
-                <li class="active">
+                <li <?php if($this->controllerName == 'test'): ?>class="active"<?php endif; ?> >
                     <a id="testPage" href="http://127.0.0.1:2020">调试界面</a>
                 </li>
             </ul>

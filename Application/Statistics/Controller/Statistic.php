@@ -53,6 +53,10 @@ class Statistic extends \Framework\CController
                 }
             }
 
+            ksort($success_series_data);
+            ksort($fail_series_data);
+            ksort($success_time_series_data);
+            ksort($fail_time_series_data);
         } catch (\Exception $e) {
             $error_msg = $e->getMessage();
         }

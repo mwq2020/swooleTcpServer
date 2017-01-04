@@ -254,13 +254,13 @@ class StatisticsWorker
         $data = self::decode($data);
         $connInfo = $serv->connection_info($fd, $from_id);
         if ($connInfo['server_port'] == $this->handleWorkerPort) {
-            $projectName    = $data['project_name']; //项目名称
+            $projectName    = $data['project_name'];   //项目名称
             $className      = $data['class_name'];     //调用类名
-            $functionName   = $data['function_name']; //调用函数名
-            $cost_time      = $data['cost_time'];//耗费时间
-            $success        = $data['is_success']; //是否成功
-            $code           = $data['code']; //服务code
-            $msg            = $data['msg']; //日志消息
+            $functionName   = $data['function_name'];  //调用函数名
+            $cost_time      = $data['cost_time'];      //耗费时间
+            $success        = $data['is_success'];     //是否成功
+            //$code           = $data['code'];           //服务code
+            $msg            = $data['msg'];            //日志消息
             $ip = $serv->connection_info($fd)['remote_ip'];//当前链接进来的ip
 
             //单一接口流量、耗时统计记录
@@ -303,7 +303,6 @@ class StatisticsWorker
             $mongoHander = $this->getMongo();
             if(!empty($mongoHander)) {
                 $data['remote_ip'] = $ip;
-                $data['msg'] = $msg;
                 $data['add_time'] = time();
                 $monogoDb = $mongoHander->selectDB('StatisticsLog');
                 $mongoCollection = $monogoDb->selectCollection($projectName);

@@ -24,11 +24,14 @@
 </div>
 
 <?php if(!empty($error_msg)): ?>
-<div class="alert alert-dismissable alert-danger">
-    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-    <strong><?php echo $error_msg;?></strong>
+<div class="row clearfix margin_top5">
+    <div class="col-md-12 column">
+    <div class="alert alert-dismissable alert-danger">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+        <strong><?php echo $error_msg;?></strong>
+    </div>
+    </div>
 </div>
-
 <?php else: ?>
 
 <div class="row clearfix">
