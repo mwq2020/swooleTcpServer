@@ -3,7 +3,7 @@
 
     <!-- 表单区start -->
     <div class="col-md-12 column">
-        <form method="post" action="/index/getresult">
+        <form method="post" action="">
             <div class="col-md-12 column list_item">
                 <span>选择服务项目</span>
                 <select name="rpc_name" id="rpc_name">
@@ -39,7 +39,7 @@
                             <input name="argv[]" class="argv_list" value="<?php echo $argv_val; ?>" init_val="<?php echo $argv_val; ?>"/> <span class="drop_argv_button">【-】</span>
                         </div>
                     <?php endforeach;?>
-                 <?php else: ?>
+                <?php else: ?>
                     <div class="list_item">
                         <span class="list_title">参数</span>
                         <input name="argv[]" class="argv_list" value="<?php if(isset($requestData['argv'][0])){ echo $requestData['argv'][0]; }?>"/> <span class="drop_argv_button">【-】</span>
@@ -210,8 +210,8 @@
         function getClassFunctions(action){
             var rpc_name = $('#rpc_name').val();
             $.ajax({
-                type: "GET",
-                url: "/index/classlist",
+                type: "POST",
+                url: "/test/classlist",
                 data: "rpc_name="+rpc_name,
                 dataType: 'json',
                 success: function(msg){

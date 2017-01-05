@@ -42,7 +42,7 @@
                     <a href="http://127.0.0.1:55757">告警</a>
                 </li>
                 <li <?php if($this->controllerName == 'test'): ?>class="active"<?php endif; ?> >
-                    <a id="testPage" href="http://127.0.0.1:2020">调试界面</a>
+                    <a id="testPage" href="http://127.0.0.1:55757/test/index">调试界面</a>
                 </li>
             </ul>
         </div>
