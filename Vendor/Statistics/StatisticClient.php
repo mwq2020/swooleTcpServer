@@ -60,9 +60,9 @@ class StatisticClient
 		if (extension_loaded('swoole')) {
 			if (is_null(self::$client) || empty(self::$client) || !is_object(self::$client)) {
 				if(PHP_SAPI == 'cli'){
-					self::$client = new \swoole_client(SWOOLE_TCP, SWOOLE_SOCK_ASYNC);
+					self::$client = new \swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
 				} else {
-					self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
+					self::$client = new \swoole_client(SWOOLE_SOCK_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
 				}
 				list($ip, $port) = explode(':', $report_address);
 				self::$client->connect($ip, $port);
@@ -70,9 +70,9 @@ class StatisticClient
 				if(!self::$client->isConnected()){
 
 					if(PHP_SAPI == 'cli'){
-						self::$client = new \swoole_client(SWOOLE_TCP, SWOOLE_SOCK_ASYNC);
+						self::$client = new \swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
 					} else {
-						self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
+						self::$client = new \swoole_client(SWOOLE_SOCK_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
 					}
 					list($ip, $port) = explode(':', $report_address);
 					self::$client->connect($ip, $port);
