@@ -8,26 +8,21 @@ namespace Statistics;
  */
 class StatisticClient
 {
-	/**
-	 * [module=>[interface=>time_start, interface=>time_start .
-	 * ..], module=>[interface=>time_start ..], ... ]
-	 * @var array
-	 */
-	protected static $timeMap = array();
-	
-	protected static $client;
+	protected static $client;//统计客户端
+	protected static $config;//统计服务地址配置
 
-	/**
-	 * 模块接口上报消耗时间记时
-	 * @param string $module        	
-	 * @param string $interface        	
-	 * @return void
-	 */
-	public static function tick($module = '', $interface = '')
+	public static function config($config='')
 	{
-		return self::$timeMap[$module][$interface] = microtime(true);
+		if(!empty($config)){
+			self::$config = $config;
+		} else {
+			$config = (array) new \Config\Statistics();
+			if(empty($config) || empty($config['default']['uri'])){
+				throw new \Exception('统计服务地址未配置！');
+			}
+			self::$config = $config['default']['uri'];
+		}
 	}
-
 
 	/**
 	 * service上报统计数据（在服务器端上报服务的数据，用来统计接口的数据）
@@ -43,7 +38,12 @@ class StatisticClient
 	 */
 	public static function serviceApiReport($project_name, $class_name, $function_name, $args,$cost_time, $is_success=true, $code=200, $msg='')
 	{
-		$report_address = '127.0.0.1:55656';
+		//$report_address = '127.0.0.1:55656';
+
+		if(empty(self::$config)){
+			self::config();
+		}
+		$report_address = self::$config;
 
 		//加密数据
 		$data = array(
@@ -58,10 +58,16 @@ class StatisticClient
 		);
 		$bin_data = Protocol::apiEncode($data);
 		if (extension_loaded('swoole')) {
-			if (!self::$client || (self::$client && !self::$client->isConnected())) {
+			if (is_null(self::$client) || empty(self::$client) || !is_object(self::$client)) {
 				self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
 				list($ip, $port) = explode(':', $report_address);
 				self::$client->connect($ip, $port);
+			} else {
+				if(!self::$client->isConnected()){
+					self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
+					list($ip, $port) = explode(':', $report_address);
+					self::$client->connect($ip, $port);
+				}
 			}
 			self::$client->send($bin_data);
 			self::$client->close();

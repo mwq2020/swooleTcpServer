@@ -22,6 +22,7 @@ class Test extends \Framework\CController
         \PHPClient\HostSwitch::config($config['apiList']);
         $methodName = $_POST['function_name'];
 
+
         $serviceobj = \PHPClient\Rpc::getInstance($_POST['rpc_name'])->setClassName($_POST['class_name']);
         $res = call_user_func_array(array($serviceobj,$methodName),$_POST['argv']);
         $this->assign('service_data',$res);

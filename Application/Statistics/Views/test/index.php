@@ -61,8 +61,8 @@
     <!-- 结果输出区start -->
     <div class="col-md-12 column" id="service_content" style="margin-top:10px;">
         <?php if(isset($service_data)){ echo '<h3>返回结果</h3><pre>'; print_r($service_data); echo '</pre><br>程序执行耗时：'. $costtime .' seconds'; }  ?>
-        <!--开始时间: <?php echo $time_start ;?>
-			结束时间: <?php echo $time_end ;?> -->
+        <!--开始时间: <?php echo isset($time_start) ? $time_start : 0 ;?>
+			结束时间: <?php echo isset($time_end) ? $time_end : 0 ;?> -->
     </div>
     <!-- 结果输出区end -->
 

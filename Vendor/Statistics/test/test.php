@@ -18,7 +18,7 @@ $cost_time = mt_rand(1,20);
 $is_success=true;
 $code=200;
 $msg='mwq_test';
-
+\Statistics\StatisticClient::config('127.0.0.1:55656');
 \Statistics\StatisticClient::serviceApiReport($project_name, $class_name, $function_name,$args, $cost_time, $is_success, $code, $msg);
 
 
