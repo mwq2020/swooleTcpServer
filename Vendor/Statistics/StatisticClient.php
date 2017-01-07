@@ -60,7 +60,7 @@ class StatisticClient
 		if (extension_loaded('swoole')) {
 			if (is_null(self::$client) || empty(self::$client) || !is_object(self::$client)) {
 				if(PHP_SAPI == 'cli'){
-					self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_ASYNC);
+					self::$client = new \swoole_client(SWOOLE_TCP, SWOOLE_SOCK_ASYNC);
 				} else {
 					self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
 				}
@@ -70,7 +70,7 @@ class StatisticClient
 				if(!self::$client->isConnected()){
 
 					if(PHP_SAPI == 'cli'){
-						self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_ASYNC);
+						self::$client = new \swoole_client(SWOOLE_TCP, SWOOLE_SOCK_ASYNC);
 					} else {
 						self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
 					}
