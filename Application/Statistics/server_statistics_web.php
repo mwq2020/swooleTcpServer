@@ -203,4 +203,4 @@ class StatisticsWebServer
     }
 }
 
-(new StatisticsWebServer())->run("127.0.0.1", 55757);
+(new StatisticsWebServer())->run("0.0.0.0", 55757);
