@@ -59,19 +59,30 @@ class StatisticClient
 		$bin_data = Protocol::apiEncode($data);
 		if (extension_loaded('swoole')) {
 			if (is_null(self::$client) || empty(self::$client) || !is_object(self::$client)) {
-				self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
+				if(PHP_SAPI == 'cli'){
+					self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_ASYNC);
+				} else {
+					self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
+				}
 				list($ip, $port) = explode(':', $report_address);
 				self::$client->connect($ip, $port);
 			} else {
 				if(!self::$client->isConnected()){
-					self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
+
+					if(PHP_SAPI == 'cli'){
+						self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_ASYNC);
+					} else {
+						self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
+					}
 					list($ip, $port) = explode(':', $report_address);
 					self::$client->connect($ip, $port);
 				}
 			}
 			self::$client->send($bin_data);
 			self::$client->close();
-			self::$client = null;
+			if(PHP_SAPI != 'cli'){
+				self::$client = null;
+			}
 		} else {
 			return self::sendData($report_address, $bin_data);
 		}
