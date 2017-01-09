@@ -72,8 +72,9 @@ class WebSocketServer
         }
 
         $returnData = $this->dealRequest($server,$fd,$from_id,$data);
-        $this->log($returnData);
-        $server->send($fd, json_encode($returnData));
+        $returnDataJson = json_encode($returnData);
+        $this->log($returnDataJson);
+        $server->send($fd, $returnDataJson);
         $server->close($fd);
     }
 
@@ -136,7 +137,7 @@ class WebSocketServer
         try {
             \Statistics\StatisticClient::serviceApiReport('Myserver', $class, $method, $param_array, $process_used_time, $ret_data['flag'], $code, $msg);
         } catch (\Exception $e){
-            $this->log(' '.$e);
+            $this->log('static error -- '.$e);
         }
 
         return $ret_data;
@@ -311,13 +312,11 @@ class WebSocketServer
             $dir = $this->logDir;
         }
         if(is_object($content) || is_array($content)){
-            $content = '['.date('Y-m-d H:i:s').']'.PHP_EOL;
-            file_put_contents($dir, print_r($content,true), FILE_APPEND);
+            $contentStr = '['.date('Y-m-d H:i:s').']'.json_encode($content).PHP_EOL;
         } else {
-            $content = '['.date('Y-m-d H:i:s').']'.$content.PHP_EOL;
-            file_put_contents($dir, $content, FILE_APPEND);
+            $contentStr = '['.date('Y-m-d H:i:s').']'.$content.PHP_EOL;
         }
-
+        file_put_contents($dir, $contentStr, FILE_APPEND);
     }
 
     /**
