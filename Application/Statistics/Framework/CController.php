@@ -24,7 +24,8 @@ class CController
     public $response;//响应
 
     public $called_class;
-    //public $called_method;
+    public $domain_url;
+    public $request_uri;
 
     public function  __construct()
     {
@@ -33,6 +34,8 @@ class CController
         $this->template->useLayout = true;
         $classArr = explode('\\',get_called_class());
         $this->called_class = strtolower($classArr[1]);
+        //$this->template->request = $this->request;
+        //$this->template->response = $this->response;
     }
 
     //protected static $Instances;
@@ -82,7 +85,7 @@ class CController
         if(empty($templateName)){
             throw new \Exception('模板名称不能为空');
         }
-
+        $this->template->url = $this->request->server['remote_addr'].':'.$this->request->server['server_port'];
         $this->template->useLayout = $this->useLayout;
         $this->template->actionName = $this->actionShortName;
         $this->template->controllerName = $this->called_class;

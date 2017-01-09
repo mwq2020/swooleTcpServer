@@ -9,6 +9,12 @@ class Logger extends \Framework\CController
         $error_msg = '';
         $log_content = '';
         try {
+            $config =\Config\Mongo::getConfig();
+            $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
+            $db = $mongo->selectDB('StatisticsLog');
+            $collectionList = $db->getCollectionNames();
+            $this->assign('collectionList',$collectionList);
+
             if(!isset($_GET['project_name'])){
                 throw new \Exception('请先选择项目后再开始查看日志');
             }
@@ -31,16 +37,21 @@ class Logger extends \Framework\CController
 
             $where = array();
             $where['add_time'] = array('$gt'=>$start_timestamp,'$lt'=>$end_timestamp);
+            if(!empty($_GET['class_name'])){
+                $where['class_name'] = $_GET['class_name'];
+            }
+            if(!empty($_GET['function_name'])){
+                $where['function_name'] = $_GET['function_name'];
+            }
 
             $p = isset($_GET['p']) && !empty($_GET['p']) ? intval($_GET['p']) : 1;
             $page_size = isset($_GET['page_size']) && !empty($_GET['page_size']) ? intval($_GET['page_size']) : 10;
-            $config =\Config\Mongo::getConfig();
-            $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
-            $db = $mongo->selectDB('StatisticsLog');
             $collection = $db->selectCollection($_GET['project_name']);
 
             $startNum = ($p-1)*$page_size;
             $list = $collection->find($where)->skip($startNum)->limit($page_size);
+            $count = $collection->find($where)->count();
+            $this->assign('count',$count);
             $log_content = '';
             foreach($list as $row){
                 $log_content .= '请求时间：'.date('Y-m-d H:i:s',$row['add_time']).
@@ -49,10 +60,13 @@ class Logger extends \Framework\CController
                                 ' 日志内容【'.$row['msg']."】<br>";
             }
 
+            $page = new \Model\Pagination($count,20,$_GET);
+            $page->url = $this->domain_url.$this->request_uri;
+            $this->assign('pageStr',$page->show());
+
         } catch (\Exception $e) {
             $error_msg = $e->getMessage();
         }
-
         $this->assign('log_content',$log_content);
         $this->assign('error_msg',$error_msg);
         $this->assign('page_request',$_GET);

@@ -11,13 +11,15 @@ class Template
     public $actionName;      //方法名称
     protected $current_template_file;  //当前的模板文件
 
-    public $request;         //方法名称
+    public $request;
+    public $response;
     public $useLayout;       //是否使用layout
     public $templatePath;    //模板的目录
     public $viewPath;        //模板根目录
     public $layoutPath;      //layout地址
 
     public $tpl_vars = array(); //存储模板变量对象
+    public $url;
 
     /**
      * 模板构造函数

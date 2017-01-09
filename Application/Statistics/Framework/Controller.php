@@ -41,6 +41,8 @@ class Controller
             $controller->controllerName = $this->_controllerName;
             $controller->actionName     = $this->_actionName;
             $controller->actionShortName     = $this->_actionShortName;
+            $controller->domain_url = $this->request->server['remote_addr'].':'.$this->request->server['server_port'];
+            $controller->request_uri = $this->request->server['request_uri'];
             return call_user_func(array($controller, $this->_actionName));
 
             //$content = ob_get_contents();

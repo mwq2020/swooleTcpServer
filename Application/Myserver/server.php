@@ -110,9 +110,9 @@ class WebSocketServer
 
         //上报服务结果
         try {
-            \Statistics\StatisticClient::serviceApiReport('Myserver', $class, $method, $param_array, $process_used_time, $ret_data['flag'], $code, $msg);
+            \Statistics\StatisticClient::serviceApiReport($this->serverName, $class, $method, $param_array, $process_used_time, $ret_data['flag'], $code, $msg);
         } catch (\Exception $e){
-            $this->log('static error -- '.$e);
+            $this->log('static error'.$e);
         }
 
         return $ret_data;
