@@ -14,19 +14,8 @@ class WebSocketServer
     public $serverHost = '0.0.0.0';//服务的绑定ip
     public $serverPort = '7000';//服务的绑定端口
 
-    public $swooleTable = null;
-    //public $hasStartTimer = false;
-
     public function __construct() 
     {
-        //sucess_count  fail_count  success_cost_time  fail_cost_time
-        //$swooleTable = new \swoole_table(1024); //最大存储1024行 指定的时候只能指定2的指数列
-        //$swooleTable->column('sucess_count', swoole_table::TYPE_INT, 8);     //成功调用次数
-        //$swooleTable->column('fail_count', swoole_table::TYPE_INT, 8);       //失败调用次数
-        //$swooleTable->column('success_cost_time', swoole_table::TYPE_FLOAT); //成功耗费的总时间
-        //$swooleTable->column('fail_cost_time', swoole_table::TYPE_FLOAT);    //失败耗费的总时间
-        //$swooleTable->create();
-
         $server = new swoole_server($this->serverHost, $this->serverPort);
         $server->set(
             array(
@@ -37,7 +26,6 @@ class WebSocketServer
             )
         );
 
-        //$server->swooleTable = $swooleTable;
         $server->on('start',array($this,'onStart'));
         $server->on('managerStart',array($this,'onManagerStart'));
         $server->on('workerStart',array($this,'onWorkerStart'));
@@ -87,12 +75,6 @@ class WebSocketServer
         $ip = $server->connection_info($fd)['remote_ip'];
 
         $process_start_time = microtime(true);
-        //sucess_count  fail_count  success_cost_time  fail_cost_time
-        //$statistics_key = $this->serverName.'|'.$class.'|'.$method.'|'.$ip.'|'.date('YmdHi');
-        //if(!$server->swooleTable->exist($statistics_key)){
-        //    $server->swooleTable->set($statistics_key,array('sucess_count'=>0,'fail_count'=>0,'success_cost_time'=>0,'fail_cost_time'=>0));
-        //}
-
         $code = 200;    //服务状态code
         $msg = '';      //错误堆栈信息
         try
@@ -118,18 +100,11 @@ class WebSocketServer
 
             // 发送数据给客户端，调用成功，data下标对应的元素即为调用结果
             $ret_data = array('code'=>$code, 'flag'=>true, 'msg'=>'ok', 'data'=>$ret);
-            //$process_used_time = microtime(true)- $process_start_time;
-            //$server->swooleTable->incr($statistics_key,'sucess_count',1);
-            //$server->swooleTable->incr($statistics_key,'success_cost_time',$process_used_time);
         } catch(\Exception $e) {
             // 有异常 发送数据给客户端，发生异常，调用失败
             $code = $e->getCode() == 200 ? 2001 : ($e->getCode() ? $e->getCode() : 500);
             $msg = ''.$e;
-            $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>$e->getMessage(), 'data'=>$e);
-
-            //$process_used_time = microtime(true)- $process_start_time;
-            //$server->swooleTable->incr($statistics_key,'fail_count',1);
-            //$server->swooleTable->incr($statistics_key,'fail_cost_time',$process_used_time);
+            $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>''.$e, 'data'=>$e);
         }
         $process_used_time = microtime(true)- $process_start_time;
 
@@ -178,12 +153,6 @@ class WebSocketServer
     //开启worker进程【设置进程的名称】
     public function onWorkerStart($server,$worker_id)
     {
-        if($worker_id == 0){
-            $server->tick(59000, function() use ($server, $worker_id) {
-                //$this->saveStatisticsData($server);
-            });
-        }
-
         include_once $this->applicationRoot.'/../../Vendor/Bootstrap/Autoloader.php';
         \Bootstrap\Autoloader::instance()->addRoot($this->applicationRoot.'/')->addRoot($this->applicationRoot.'/../../Vendor/')->init();
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' worker listen['.$this->serverHost.':'.$this->serverPort.']'); //可以甚至swoole的进程名字 用于区分 {设置主进程的名称}
@@ -193,7 +162,6 @@ class WebSocketServer
     public function onWorkerStop($server, $worker_id)
     {
         //$this->log('onWorkerStop');
-        //$this->saveStatisticsData($server);
     }
 
     //当tcpworker进程处理崩溃的时候出发
@@ -318,51 +286,7 @@ class WebSocketServer
         }
         file_put_contents($dir, $contentStr, FILE_APPEND);
     }
-
-    /**
-     * 保存统计数据到db中
-     * @param $server
-     */
-    public function saveStatisticsData($server)
-    {
-        /*
-        $overdueKeys = array();
-        //$conn = new MongoClient("10.211.55.7:27017");
-        $conn = new \Mongo\Client();
-        foreach($server->swooleTable as $key => $row){
-            if(date('YmdHi') - intval(substr($key,-12)) >=2){
-                //here 存储数据到db中，方便查询统计
-                $this->log('onTimer['.$key.'] '.json_encode($row),'/tmp/swoole_timed.log');
-
-                $temp = explode('|',$key);
-                $data = array(
-                    'project_name'   => $temp[0],
-                    'class_name'    => $temp[1],
-                    'function_name' => $temp[2],
-                    'request_ip' => $temp[3],
-                    'server_ip' => current(swoole_get_local_ip()),
-                    'time_minute' => substr($key,-12).'00',
-                    'success_count' => $row['sucess_count'],
-                    'fail_count' => $row['fail_count'],
-                    'success_cost_time' => $row['success_cost_time'],
-                    'fail_cost_time' => $row['fail_cost_time'],
-                );
-
-                $db = $conn->selectDB($data['project_name']);
-                $collection = $db->selectCollection($data['class_name']);
-                $collection->insert($data);
-                array_push($overdueKeys,$key);
-            } else {
-                $this->log('onTimer['.$key.']'.json_encode($row),'/tmp/swoole_time.log');
-            }
-        }
-
-        foreach($overdueKeys as $key){
-            $server->swooleTable->del($key);
-        }
-        */
-    }
-
+    
 }
 
 WebSocketServer::getInstance();
