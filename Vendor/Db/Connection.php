@@ -111,7 +111,7 @@ class Connection {
             self::$configs = (array) new \Config\Db;
         }
         if (!is_null($dsn)) {
-            file_put_contents('/tmp/db.log', $dsn."\r\n", FILE_APPEND);
+            //file_put_contents('/tmp/db.log', $dsn."\r\n", FILE_APPEND);
             $this->connect($dsn, $username, $passwd, $options);
         }
     }
