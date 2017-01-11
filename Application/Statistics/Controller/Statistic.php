@@ -12,6 +12,17 @@ class Statistic extends \Framework\CController
         $success_time_series_data = [];
         $fail_time_series_data = [];
         try {
+
+            $config =\Config\Mongo::getConfig();
+            $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
+            $db = $mongo->selectDB('Statistics');
+            $collectionList = $db->getCollectionNames();
+            $remove_key = array_search('All_Statistics',$collectionList);
+            if($remove_key !== false){
+                unset($collectionList[$remove_key]);
+            }
+            $this->assign('collectionList',$collectionList);
+
             $_GET['start_time'] = isset($_GET['start_time']) ? $_GET['start_time'] : date('Y-m-d 00:00:00');
             $_GET['end_time'] = isset($_GET['end_time']) ? $_GET['end_time'] : date('Y-m-d 23:59:59');
             if(!isset($_GET['project_name'])){

@@ -4,7 +4,11 @@
             项目：
             <select name="project_name">
                 <option value="0">请选择</option>
-                <option value="Club" <?php if(isset($page_request['project_name']) && $page_request['project_name'] == 'Club'){ echo "selected";} ?> >Club</option>
+                <?php if($collectionList): ?>
+                    <?php foreach($collectionList as $row): ?>
+                        <option value="<?php echo $row; ?>" <?php if(isset($page_request['project_name']) && $page_request['project_name'] == $row){ echo "selected";} ?> ><?php echo $row; ?></option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </select>
             类名：
             <input type="text" name="class_name" value="<?php echo isset($page_request['class_name']) ? $page_request['class_name'] : ''; ?>">
