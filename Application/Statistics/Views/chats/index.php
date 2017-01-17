@@ -72,7 +72,7 @@
                         for (i = -19; i <= 0; i++) {
                             data.push({
                                 x: time + i * 1000,
-                                y: Math.random()
+                                y: 0
                             });
                         }
                         return data;
@@ -87,7 +87,7 @@
                             for (i = -19; i <= 0; i++) {
                                 data.push({
                                     x: time + i * 1000,
-                                    y: Math.random()
+                                    y: 0
                                 });
                             }
                             return data;
@@ -97,9 +97,8 @@
             var series = chart.series[0];
             var series1 = chart.series[1];
             setInterval(function() {
-                    var x = (new Date()).getTime(),
-                    // current time
-                        y = Math.random();
+                    var x = (new Date()).getTime()
+                        //y = Math.random();
                     //series.addPoint([x, y + 1], true, true);
                     //series1.addPoint([x, y - 1], true, true);
 
@@ -109,20 +108,17 @@
                         type:'POST', //GET
                         async:true,    //或false,是否异步
                         data:{timestamp:x},
-                        timeout:10000,    //超时时间
+                        timeout:1000,    //超时时间
                         dataType:'json',
                         success:function(ajaxData){
                             statistics_data = $.parseJSON(ajaxData.statistics_data)
                             series.addPoint([x, statistics_data.success_count], true, true);
                             series1.addPoint([x, statistics_data.fail_count], true, true);
                         },
-                        error:function(ajaxData,textStatus){
-
-                        }
+                        error:function(ajaxData,textStatus){ }
                     })
-
                 },
-                2000);
+                1000);
         });
     });
 

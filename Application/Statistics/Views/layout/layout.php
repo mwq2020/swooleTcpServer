@@ -41,8 +41,8 @@
                 <li class="disabled">
                     <a href="http://<?php echo $this->url; ?>">告警</a>
                 </li>
-                <li <?php if($this->controllerName == 'test'): ?>class="active"<?php endif; ?> >
-                    <a id="testPage" href="http://<?php echo $this->url; ?>/sync/index">实时统计</a>
+                <li <?php if($this->controllerName == 'chats'): ?>class="active"<?php endif; ?> >
+                    <a id="testPage" href="http://<?php echo $this->url; ?>/chats/index">实时统计</a>
                 </li>
                 <li <?php if($this->controllerName == 'test'): ?>class="active"<?php endif; ?> >
                     <a id="testPage" href="http://<?php echo $this->url; ?>/test/index">调试界面</a>
