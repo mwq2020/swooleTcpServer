@@ -1,7 +1,7 @@
 
 <div class="row clearfix">
     <div class="col-md-12 column">
-        <div id="container_two" style="min-width:700px;height:400px"></div>
+        <div id="container" style="min-width:700px;height:400px"></div>
     </div>
 </div>
 
@@ -17,7 +17,7 @@
             var chart;
             chart = new Highcharts.Chart({
                 chart: {
-                    renderTo: 'container_two',
+                    renderTo: 'container',
                     type: 'spline',
                     animation: Highcharts.svg,
                     marginRight: 10,
@@ -64,7 +64,7 @@
                     enabled: false
                 },
                 series: [{
-                    name: 'Random data',
+                    name: 'Random data 2xx',
                     data: (function() { // generate an array of random data
                         var data = [],
                             time = (new Date()).getTime(),
@@ -79,7 +79,7 @@
                     })()
                 },
                     {
-                        name: 'Random data',
+                        name: 'Random data 5xx',
                         data: (function() { // generate an array of random data
                             var data = [],
                                 time = (new Date()).getTime(),
