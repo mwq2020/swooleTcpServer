@@ -11,7 +11,9 @@ class StatisticsWorker
     public $logDir = '/tmp/swoole.log';
     public static $instance;
     private $mongo; //mongo链接connect
+    private $redis; //redis链接connect
     protected $handleWorkerPort = 55656;
+    protected $handleProviderPort = 55858;
 
     public $serverNamePrefix = 'swooleServer[php] ';//swoole服务的进程名称前缀
     public $serverName = 'statistics_service';//自己的服务名称
@@ -42,24 +44,24 @@ class StatisticsWorker
             $this->handleWorkerPort = $port;
         }
 
-        //sucess_count  fail_count  success_cost_time  fail_cost_time
+        //success_count  fail_count  success_cost_time  fail_cost_time
         $swooleTable = new \swoole_table(24576); //最大存储1024行 指定的时候只能指定2的指数列
-        $swooleTable->column('sucess_count', swoole_table::TYPE_INT, 8);     //成功调用次数
+        $swooleTable->column('success_count', swoole_table::TYPE_INT, 8);     //成功调用次数
         $swooleTable->column('fail_count', swoole_table::TYPE_INT, 8);       //失败调用次数
         $swooleTable->column('success_cost_time', swoole_table::TYPE_FLOAT); //成功耗费的总时间
         $swooleTable->column('fail_cost_time', swoole_table::TYPE_FLOAT);    //失败耗费的总时间
         $swooleTable->create();
 
-        //sucess_count  fail_count  success_cost_time  fail_cost_time
+        //success_count  fail_count  success_cost_time  fail_cost_time
         $allTable = new \swoole_table(128); //最大存储1024行 指定的时候只能指定2的指数列
-        $allTable->column('sucess_count', swoole_table::TYPE_INT, 8);     //成功调用次数
+        $allTable->column('success_count', swoole_table::TYPE_INT, 8);     //成功调用次数
         $allTable->column('fail_count', swoole_table::TYPE_INT, 8);       //失败调用次数
         $allTable->column('success_cost_time', swoole_table::TYPE_FLOAT); //成功耗费的总时间
         $allTable->column('fail_cost_time', swoole_table::TYPE_FLOAT);    //失败耗费的总时间
         $allTable->create();
 
         $serv = new \swoole_server($ip, $port, $mode, $type);	//处理客户端发送的数据 55656
-        //$serv->addlistener('0.0.0.0', $this->handleProviderPort, SWOOLE_SOCK_TCP|SWOOLE_SOCK_UDP); //处理统计页面请求的数据 55858
+        $serv->addlistener('0.0.0.0', 55858, SWOOLE_SOCK_TCP|SWOOLE_SOCK_UDP); //处理统计页面请求的数据 55858
         //$serv->addlistener('0.0.0.0', $this->udpFinderport, SWOOLE_SOCK_UDP); //recv udp broadcast 55859
         $serv->swooleTable = $swooleTable; //统计技术表(单个接口统计)
         $serv->allTable = $allTable; //统计技术表（全局）
@@ -67,7 +69,7 @@ class StatisticsWorker
                 'worker_num'    => 2,   //工作进程数量
                 'max_request'   => 8, //多少次调用后再重启新的进程
                 'daemonize' => true,
-                //'log_file' => $this->logDir,
+                'log_file' => $this->logDir,
             ));
         $serv->on('Start', array($this, 'onStart'));
         $serv->on('ManagerStart', array($this, 'onManagerStart'));
@@ -131,11 +133,24 @@ class StatisticsWorker
     {
         if (empty($this->mongo) || !$this->mongo->getHosts()) {
             $config =\Config\Mongo::getConfig();
-            //$this->log(json_encode($config));
             $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
         }
         return $this->mongo;
     }
+
+    /**
+     * 日志保存在redis中
+     */
+    public function getRedis()
+    {
+        if (empty($this->redis) || !$this->redis->ping()) {
+            $redis = new \Redis();
+            $redis->connect('127.0.0.1', 6379);
+            $this->redis = $redis;
+        }
+        return $this->redis;
+    }
+
 
     //添加日志到文件
     public function log($content,$dir='')
@@ -185,7 +200,7 @@ class StatisticsWorker
                     'local_server_ip'     => current(swoole_get_local_ip()),
                     'time_stamp'   => $timestamp*1,
                     'time_minute'   => date('Y-m-d H:i:s',$timestamp),
-                    'success_count' => $row['sucess_count'],
+                    'success_count' => $row['success_count'],
                     'fail_count'    => $row['fail_count'],
                     'success_cost_time' => $row['success_cost_time'],
                     'fail_cost_time'    => $row['fail_cost_time'],
@@ -205,25 +220,35 @@ class StatisticsWorker
         }
 
         //全局流量、耗时统计记录
+        //$all_statistics_key = 'all_'.strtotime(date('Y-m-d H:i:00'))+60;
         foreach($server->allTable as $key => $row){
-            if((time() - $key) >= 90) {
-                $data = array(
-                    'local_server_ip'     => current(swoole_get_local_ip()),
-                    'time_stamp'   => $key*1,
-                    'time_minute'   => date('Y-m-d H:i:s',$key),
-                    'success_count' => $row['sucess_count'],
-                    'fail_count'    => $row['fail_count'],
-                    'success_cost_time' => $row['success_cost_time'],
-                    'fail_cost_time'    => $row['fail_cost_time'],
-                );
+            $key_prefix = substr($key,0,-11);
+            if($key_prefix == 'all'){
+                if((time() - $key) >= 90) {
+                    $data = array(
+                        'local_server_ip'     => current(swoole_get_local_ip()),
+                        'time_stamp'   => $key*1,
+                        'time_minute'   => date('Y-m-d H:i:s',$key),
+                        'success_count' => $row['success_count'],
+                        'fail_count'    => $row['fail_count'],
+                        'success_cost_time' => $row['success_cost_time'],
+                        'fail_cost_time'    => $row['fail_cost_time'],
+                    );
 
-                $db = $conn->selectDB('Statistics');
-                $collection = $db->selectCollection('All_Statistics');
-                $collection->insert($data);
-                array_push($overdueKeys,$key);
-            } else {
-                $this->log('onTimer allplatform ['.$key.'<-->'.date('Y-m-d H:i:s',$key).'] is not time to save');
+                    $db = $conn->selectDB('Statistics');
+                    $collection = $db->selectCollection('All_Statistics');
+                    $collection->insert($data);
+                    array_push($overdueKeys,$key);
+                } else {
+                    $this->log('onTimer allplatform ['.$key.'<-->'.date('Y-m-d H:i:s',$key).'] is not time to save');
+                }
+            } elseif($key_prefix == 'second'){
+                if((time() - $key) >= 10) {
+                    array_push($overdueKeys,$key);
+                }
             }
+
+
         }
         foreach($overdueKeys as $keyNum => $key){
             $server->allTable->del($key);
@@ -251,9 +276,9 @@ class StatisticsWorker
      */
     public function onReceive(\swoole_server $serv, $fd, $from_id, $data)
     {
-        $data = self::decode($data);
         $connInfo = $serv->connection_info($fd, $from_id);
         if ($connInfo['server_port'] == $this->handleWorkerPort) {
+            $data = self::decode($data);
             $projectName    = $data['project_name'];   //项目名称
             $className      = $data['class_name'];     //调用类名
             $functionName   = $data['function_name'];  //调用函数名
@@ -267,13 +292,13 @@ class StatisticsWorker
             $statistics_key = $projectName.'|'.$className.'|'.$functionName.'|'.$ip.'|'.(strtotime(date('Y-m-d H:i:00'))+60);
             if(!$serv->swooleTable->exist($statistics_key)){
                 if($success){
-                    $serv->swooleTable->set($statistics_key,array('sucess_count'=>1,'fail_count'=>0,'success_cost_time'=>$cost_time,'fail_cost_time'=>0));
+                    $serv->swooleTable->set($statistics_key,array('success_count'=>1,'fail_count'=>0,'success_cost_time'=>$cost_time,'fail_cost_time'=>0));
                 } else {
-                    $serv->swooleTable->set($statistics_key,array('sucess_count'=>0,'fail_count'=>1,'success_cost_time'=>0,'fail_cost_time'=>$cost_time));
+                    $serv->swooleTable->set($statistics_key,array('success_count'=>0,'fail_count'=>1,'success_cost_time'=>0,'fail_cost_time'=>$cost_time));
                 }
             } else {
                 if($success){
-                    $serv->swooleTable->incr($statistics_key,'sucess_count',1);
+                    $serv->swooleTable->incr($statistics_key,'success_count',1);
                     $serv->swooleTable->incr($statistics_key,'success_cost_time',$cost_time);
                 } else {
                     $serv->swooleTable->incr($statistics_key,'fail_count',1);
@@ -282,16 +307,16 @@ class StatisticsWorker
             }
 
             //全局流量、耗时统计记录
-            $all_statistics_key = strtotime(date('Y-m-d H:i:00'))+60;
+            $all_statistics_key = 'all_'.strtotime(date('Y-m-d H:i:00'))+60;
             if(!$serv->allTable->exist($all_statistics_key)){
                 if($success){
-                    $serv->allTable->set($all_statistics_key,array('sucess_count'=>1,'fail_count'=>0,'success_cost_time'=>$cost_time,'fail_cost_time'=>0));
+                    $serv->allTable->set($all_statistics_key,array('success_count'=>1,'fail_count'=>0,'success_cost_time'=>$cost_time,'fail_cost_time'=>0));
                 } else {
-                    $serv->allTable->set($all_statistics_key,array('sucess_count'=>0,'fail_count'=>1,'success_cost_time'=>0,'fail_cost_time'=>$cost_time));
+                    $serv->allTable->set($all_statistics_key,array('success_count'=>0,'fail_count'=>1,'success_cost_time'=>0,'fail_cost_time'=>$cost_time));
                 }
             } else {
                 if($success){
-                    $serv->allTable->incr($all_statistics_key,'sucess_count',1);
+                    $serv->allTable->incr($all_statistics_key,'success_count',1);
                     $serv->allTable->incr($all_statistics_key,'success_cost_time',$cost_time);
                 } else {
                     $serv->allTable->incr($all_statistics_key,'fail_count',1);
@@ -299,14 +324,55 @@ class StatisticsWorker
                 }
             }
 
-            //日志记录在mongodb
+            //实时统计每秒的数据
+            $second_statistics_key = 'second_'.time();
+            if(!$serv->allTable->exist($second_statistics_key)){
+                if($success){
+                    $serv->allTable->set($second_statistics_key,array('success_count'=>1,'fail_count'=>0,'success_cost_time'=>$cost_time,'fail_cost_time'=>0));
+                } else {
+                    $serv->allTable->set($second_statistics_key,array('success_count'=>0,'fail_count'=>1,'success_cost_time'=>0,'fail_cost_time'=>$cost_time));
+                }
+            } else {
+                if($success){
+                    $serv->allTable->incr($second_statistics_key,'success_count',1);
+                    $serv->allTable->incr($second_statistics_key,'success_cost_time',$cost_time);
+                } else {
+                    $serv->allTable->incr($second_statistics_key,'fail_count',1);
+                    $serv->allTable->incr($second_statistics_key,'fail_cost_time',$cost_time);
+                }
+            }
+
+            $data['remote_ip'] = $ip;
+            $data['add_time'] = time();
+            //日志记录在mongodb【利于后期筛选】
             $mongoHander = $this->getMongo();
             if(!empty($mongoHander)) {
-                $data['remote_ip'] = $ip;
-                $data['add_time'] = time();
                 $monogoDb = $mongoHander->selectDB('StatisticsLog');
                 $mongoCollection = $monogoDb->selectCollection($projectName);
                 $mongoCollection->insert($data);
+            }
+            //存储到redis  lpush【方便后期实时收集日志展示-秒级别的日志实时展示】
+            $this->getRedis();
+            if(!empty($this->redis)){
+                $redis_key = 'second_'.time();
+                $this->redis->lpush($redis_key,json_encode($data));
+                $this->redis->expire($redis_key,30);
+            }
+
+        }else if($connInfo['server_port'] == $this->handleProviderPort) {
+            $data = self::decode($data);
+            if(trim($data['action']) == 'sync_statistics_data'){
+                $timestamp = $data['timestamp'];
+                $secondData = array('success_count' => 0,'fail_count'=>0);
+                $statisticsInfo = $serv->allTable->get('second_'.$timestamp);
+                if($statisticsInfo){
+                    $secondData = array('success_count' => $statisticsInfo['success_count'],'fail_count'=>$statisticsInfo['fail_count']);
+                }
+                $serv->send($fd,json_encode($secondData));
+                return $serv->close($fd,true);
+            }else{
+                $serv->send($fd,'test here');
+                return $serv->close($fd,true);
             }
         }
     }
@@ -356,8 +422,6 @@ class StatisticsWorker
     public function onClose($serv, $fd, $from_id)
     {
         //$this->log("Worker#{$serv->worker_pid} Client[$fd@$from_id]: fd=$fd is closed");
-        //$redis = $this->getRedis();
-        //$redis->delete('key'.$fd);
     }
 
     /**

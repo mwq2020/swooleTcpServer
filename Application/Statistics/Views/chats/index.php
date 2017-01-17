@@ -1,0 +1,130 @@
+
+<div class="row clearfix">
+    <div class="col-md-12 column">
+        <div id="container_two" style="min-width:700px;height:400px"></div>
+    </div>
+</div>
+
+
+<script>
+    $(function() {
+        $(document).ready(function() {
+            Highcharts.setOptions({
+                global: {
+                    useUTC: false
+                }
+            });
+            var chart;
+            chart = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'container_two',
+                    type: 'spline',
+                    animation: Highcharts.svg,
+                    marginRight: 10,
+                    events: {
+                        load: function() {}
+                    }
+                },
+                title: {
+                    text: '接口实时统计'
+                },
+                xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+                },
+                yAxis: [{
+                    title: {
+                        text: '秒/个'
+                    },
+                    plotLines: [{
+                        value: 0,
+                        width: 1,
+                        color: '#808080'
+                    }]
+                },
+                    {
+                        title: {
+                            text: ''
+                        },
+                        plotLines: [{
+                            value: 0,
+                            width: 1,
+                            color: '#808080'
+                        }]
+                    }],
+                tooltip: {
+                    formatter: function() {
+                        return '<b>' + this.series.name + '</b><br/>' + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' + Highcharts.numberFormat(this.y, 2);
+                    }
+                },
+                legend: {
+                    enabled: false
+                },
+                exporting: {
+                    enabled: false
+                },
+                series: [{
+                    name: 'Random data',
+                    data: (function() { // generate an array of random data
+                        var data = [],
+                            time = (new Date()).getTime(),
+                            i;
+                        for (i = -19; i <= 0; i++) {
+                            data.push({
+                                x: time + i * 1000,
+                                y: Math.random()
+                            });
+                        }
+                        return data;
+                    })()
+                },
+                    {
+                        name: 'Random data',
+                        data: (function() { // generate an array of random data
+                            var data = [],
+                                time = (new Date()).getTime(),
+                                i;
+                            for (i = -19; i <= 0; i++) {
+                                data.push({
+                                    x: time + i * 1000,
+                                    y: Math.random()
+                                });
+                            }
+                            return data;
+                        })()
+                    }]
+            }); // set up the updating of the chart each second
+            var series = chart.series[0];
+            var series1 = chart.series[1];
+            setInterval(function() {
+                    var x = (new Date()).getTime(),
+                    // current time
+                        y = Math.random();
+                    //series.addPoint([x, y + 1], true, true);
+                    //series1.addPoint([x, y - 1], true, true);
+
+                    //自动的获取数据
+                    $.ajax({
+                        url:'/chats/syncdata',
+                        type:'POST', //GET
+                        async:true,    //或false,是否异步
+                        data:{timestamp:x},
+                        timeout:10000,    //超时时间
+                        dataType:'json',
+                        success:function(ajaxData){
+                            statistics_data = $.parseJSON(ajaxData.statistics_data)
+                            series.addPoint([x, statistics_data.success_count], true, true);
+                            series1.addPoint([x, statistics_data.fail_count], true, true);
+                        },
+                        error:function(ajaxData,textStatus){
+
+                        }
+                    })
+
+                },
+                2000);
+        });
+    });
+
+
+</script>

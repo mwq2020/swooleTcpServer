@@ -8,6 +8,7 @@
 class StatisticsWebServer
 {
     public static $instance;
+    public $logDir = '/tmp/swoole.log';
 
     public $serverNamePrefix = 'swooleServer[php] ';//swoole服务的进程名称前缀
     public $serverName = 'statistics_web';//自己的服务名称
@@ -76,7 +77,6 @@ class StatisticsWebServer
         if(isset($path_parts['extension']) && !empty($path_parts['extension']) && isset($mimeList[$path_parts['extension']]))
         {
             $filePath = __DIR__.'/Web/'.trim($pathInfo,"/");
-            //file_put_contents('/tmp/swoole.log',"\r\n 【filePath】".$filePath,FILE_APPEND);
             if(file_exists($filePath)){
                 $response->status(200);
                 $response->header("Content-Type", $mimeList[$path_parts['extension']]);
@@ -100,9 +100,6 @@ class StatisticsWebServer
             $_COOKIE = $request->cookie;
         }
 
-        //file_put_contents('/tmp/swoole.log',"\r\n 【server】".print_r($request->server,true),FILE_APPEND);
-
-        //$response->header("Content-Type",'text/html');
         $response->header("Content-Type", "text/html;charset=utf-8");
         $response->header('Connection','keep-alive');
 
@@ -192,7 +189,7 @@ class StatisticsWebServer
                 'worker_num'    => 1,   //工作进程数量
                 'max_request'   => 1, //多少次调用后再重启新的进程
                 'daemonize' => true,
-                //'log_file' => '/tmp/swoole.log',
+                'log_file' => $this->logDir,
             )
         );
         $webServer->on('WorkerStart', array($this, 'onWorkerStart'));

@@ -73,4 +73,29 @@ class Logger extends \Framework\CController
         return $this->display('index');
     }
 
+    /**
+     * 获取当前时间戳的访问数据
+     */
+    public function actionSyncdata()
+    {
+        echo "<pre>";
+
+        $params = array();
+        $params['action'] = 'sync_statistics_data';
+        $params['timestamp'] = time();
+        $result = (new \Model\Request)->getStatisticsData($params);
+        var_dump($result);
+
+
+        $redis = new \Redis();
+        $redis->connect('127.0.0.1', 6379);
+
+        $redis_key = 'second_'.time();
+        $result = $redis->lRange($redis_key,0,1000);
+        foreach($result as $row){
+            echo $row."<br>";
+            print_r(json_decode($row,true));
+        }
+    }
+
 }
