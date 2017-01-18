@@ -33,6 +33,7 @@
                     tickPixelInterval: 150
                 },
                 yAxis: [{
+                    min:0, // 定义最小值
                     title: {
                         text: '秒/个'
                     },
