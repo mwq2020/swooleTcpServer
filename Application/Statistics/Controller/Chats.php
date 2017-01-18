@@ -19,7 +19,7 @@ class Chats extends \Framework\CController
         $timestamp = $timestamp>0 ? $timestamp : time();
         $params = array();
         $params['action'] = 'sync_statistics_data';
-        $params['timestamp'] = $timestamp;
+        $params['timestamp'] = time()-1;
         $statistics_data = (new \Model\Request)->getStatisticsData($params);
 
         $redis = new \Redis();
@@ -32,7 +32,7 @@ class Chats extends \Framework\CController
             array_push($newList,json_decode($row,true));
         }
 
-        echo json_encode(array('statistics_data' => $statistics_data,'log_list'=>$newList));
+        echo json_encode(array('timestamp' => $timestamp,'statistics_data' => $statistics_data,'log_list'=>$newList));
     }
 
 }

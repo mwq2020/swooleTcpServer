@@ -53,7 +53,7 @@ class StatisticsWorker
         $swooleTable->create();
 
         //success_count  fail_count  success_cost_time  fail_cost_time
-        $allTable = new \swoole_table(128); //最大存储1024行 指定的时候只能指定2的指数列
+        $allTable = new \swoole_table(512); //最大存储1024行 指定的时候只能指定2的指数列
         $allTable->column('success_count', swoole_table::TYPE_INT, 8);     //成功调用次数
         $allTable->column('fail_count', swoole_table::TYPE_INT, 8);       //失败调用次数
         $allTable->column('success_cost_time', swoole_table::TYPE_FLOAT); //成功耗费的总时间
@@ -221,16 +221,18 @@ class StatisticsWorker
 
         //全局流量、耗时统计记录
         //$all_statistics_key = 'all_'.strtotime(date('Y-m-d H:i:00'))+60;
+        $overdueKeys = array();
         foreach($server->allTable as $key => $row){
             $key_prefix = substr($key,0,-11);
             if($key_prefix == 'all'){
-                if((time() - $key) >= 90) {
+                $tmp_timestamp = substr($key,4);
+                if((time() - $tmp_timestamp) >= 90) {
                     $data = array(
-                        'local_server_ip'     => current(swoole_get_local_ip()),
-                        'time_stamp'   => $key*1,
-                        'time_minute'   => date('Y-m-d H:i:s',$key),
-                        'success_count' => $row['success_count'],
-                        'fail_count'    => $row['fail_count'],
+                        'local_server_ip'   => current(swoole_get_local_ip()),
+                        'time_stamp'        => $tmp_timestamp*1,
+                        'time_minute'       => date('Y-m-d H:i:s',$tmp_timestamp),
+                        'success_count'     => $row['success_count'],
+                        'fail_count'        => $row['fail_count'],
                         'success_cost_time' => $row['success_cost_time'],
                         'fail_cost_time'    => $row['fail_cost_time'],
                     );
@@ -240,15 +242,17 @@ class StatisticsWorker
                     $collection->insert($data);
                     array_push($overdueKeys,$key);
                 } else {
-                    $this->log('onTimer allplatform ['.$key.'<-->'.date('Y-m-d H:i:s',$key).'] is not time to save');
+                    $this->log('onTimer allplatform ['.$key.'<-->'.date('Y-m-d H:i:s',$tmp_timestamp).'] is not time to save');
                 }
             } elseif($key_prefix == 'second'){
-                if((time() - $key) >= 10) {
+                $tmp_timestamp = substr($key,7);
+                if((time() - $tmp_timestamp) >= 7) {
                     array_push($overdueKeys,$key);
                 }
+                $this->log('onTimer allplatform  second ['.$key.'<-->'.date('Y-m-d H:i:s',$tmp_timestamp).'] is not time to save');
+            } else {
+                $this->log('onTimer allplatform else ['.$key.'] is not time to save');
             }
-
-
         }
         foreach($overdueKeys as $keyNum => $key){
             $server->allTable->del($key);
@@ -307,7 +311,7 @@ class StatisticsWorker
             }
 
             //全局流量、耗时统计记录
-            $all_statistics_key = 'all_'.strtotime(date('Y-m-d H:i:00'))+60;
+            $all_statistics_key = 'all_'.(strtotime(date('Y-m-d H:i:00'))+60);
             if(!$serv->allTable->exist($all_statistics_key)){
                 if($success){
                     $serv->allTable->set($all_statistics_key,array('success_count'=>1,'fail_count'=>0,'success_cost_time'=>$cost_time,'fail_cost_time'=>0));

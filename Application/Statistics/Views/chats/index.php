@@ -97,11 +97,11 @@
             var series = chart.series[0];
             var series1 = chart.series[1];
             setInterval(function() {
-                    var x = (new Date()).getTime()
                         //y = Math.random();
                     //series.addPoint([x, y + 1], true, true);
                     //series1.addPoint([x, y - 1], true, true);
-
+                    var x = (new Date()).getTime()-1000
+                    //console.log('origin:'+x)
                     //自动的获取数据
                     $.ajax({
                         url:'/chats/syncdata',
@@ -112,6 +112,8 @@
                         dataType:'json',
                         success:function(ajaxData){
                             statistics_data = $.parseJSON(ajaxData.statistics_data)
+                            x = ajaxData.timestamp*1000;
+                            //console.log('return:'+x)
                             series.addPoint([x, statistics_data.success_count], true, true);
                             series1.addPoint([x, statistics_data.fail_count], true, true);
                         },
