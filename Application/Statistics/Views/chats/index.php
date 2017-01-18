@@ -65,7 +65,7 @@
                     enabled: false
                 },
                 series: [{
-                    name: 'Random data 2xx',
+                    name: '实时访问流量 2xx',
                     data: (function() { // generate an array of random data
                         var data = [],
                             time = (new Date()).getTime(),
@@ -80,7 +80,7 @@
                     })()
                 },
                     {
-                        name: 'Random data 5xx',
+                        name: '实时访问流量 5xx',
                         data: (function() { // generate an array of random data
                             var data = [],
                                 time = (new Date()).getTime(),
@@ -97,24 +97,23 @@
             }); // set up the updating of the chart each second
             var series = chart.series[0];
             var series1 = chart.series[1];
+
             setInterval(function() {
                         //y = Math.random();
                     //series.addPoint([x, y + 1], true, true);
                     //series1.addPoint([x, y - 1], true, true);
                     var x = (new Date()).getTime()-1000
-                    //console.log('origin:'+x)
                     //自动的获取数据
                     $.ajax({
                         url:'/chats/syncdata',
                         type:'POST', //GET
-                        async:true,    //或false,是否异步
+                        async:true,    //true:异步  false:同步
                         data:{timestamp:x},
                         timeout:1000,    //超时时间
                         dataType:'json',
                         success:function(ajaxData){
                             statistics_data = $.parseJSON(ajaxData.statistics_data)
                             x = ajaxData.timestamp*1000;
-                            //console.log('return:'+x)
                             series.addPoint([x, statistics_data.success_count], true, true);
                             series1.addPoint([x, statistics_data.fail_count], true, true);
                         },
