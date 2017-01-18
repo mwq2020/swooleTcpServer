@@ -29,6 +29,7 @@
                     text: '接口实时统计'
                 },
                 xAxis: {
+                    //min:1, // 定义最小值
                     type: 'datetime',
                     tickPixelInterval: 150
                 },
@@ -99,23 +100,23 @@
             var series1 = chart.series[1];
 
             setInterval(function() {
-                        //y = Math.random();
-                    //series.addPoint([x, y + 1], true, true);
-                    //series1.addPoint([x, y - 1], true, true);
                     var x = (new Date()).getTime()-1000
                     //自动的获取数据
                     $.ajax({
-                        url:'/chats/syncdata',
-                        type:'POST', //GET
+                        url:'/chats/syncdata?m='+Math.random(),
+                        type:'GET',
                         async:true,    //true:异步  false:同步
-                        data:{timestamp:x},
                         timeout:1000,    //超时时间
                         dataType:'json',
                         success:function(ajaxData){
                             statistics_data = $.parseJSON(ajaxData.statistics_data)
                             x = ajaxData.timestamp*1000;
-                            series.addPoint([x, statistics_data.success_count], true, true);
-                            series1.addPoint([x, statistics_data.fail_count], true, true);
+                            //if(statistics_data.success_count >0 ){
+                                series.addPoint([x, statistics_data.success_count], true, true);
+                            //}
+                            //if(statistics_data.fail_count > 0){
+                                series1.addPoint([x, statistics_data.fail_count], true, true);
+                            //}
                         },
                         error:function(ajaxData,textStatus){ }
                     })

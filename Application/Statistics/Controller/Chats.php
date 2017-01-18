@@ -15,11 +15,10 @@ class Chats extends \Framework\CController
      */
     public function actionSyncdata()
     {
-        $timestamp = intval($_POST['timestamp']/1000);
-        $timestamp = $timestamp>0 ? $timestamp : time();
+        $timestamp = time()-1;
         $params = array();
         $params['action'] = 'sync_statistics_data';
-        $params['timestamp'] = time()-1;
+        $params['timestamp'] = $timestamp;
         $statistics_data = (new \Model\Request)->getStatisticsData($params);
 
         $redis = new \Redis();
