@@ -16,7 +16,7 @@ $config = array(
 \PHPClient\HostSwitch::config($config);
 
 
-for($i=1;$i<1000;$i++){
+for($i=1;$i<10000;$i++){
     $res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testEcho('a','b','c');
     //print_r($res);
 }

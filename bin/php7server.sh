@@ -14,7 +14,7 @@
 #php路径，如不知道在哪，可以用whereis php尝试
 #PHP_BIN=/usr/bin/php
 #PHP_BIN=/opt/php5/bin/php
-PHP_BIN=php
+#PHP_BIN=php
 PHP_BIN=/opt/php7/bin/php
 
 #代码根目录
