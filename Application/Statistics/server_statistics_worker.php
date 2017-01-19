@@ -66,8 +66,8 @@ class StatisticsWorker
         $serv->swooleTable = $swooleTable; //统计技术表(单个接口统计)
         $serv->allTable = $allTable; //统计技术表（全局）
         $serv->set(array(
-                'worker_num'    => 2,   //工作进程数量
-                'max_request'   => 8, //多少次调用后再重启新的进程
+                'worker_num'    => 8,   //工作进程数量
+                'max_request'   => 100000, //多少次调用后再重启新的进程
                 'daemonize' => true,
                 'log_file' => $this->logDir,
             ));

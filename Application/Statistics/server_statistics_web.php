@@ -186,8 +186,8 @@ class StatisticsWebServer
         $webServer = new \swoole_http_server($ip, $port);
         $webServer->set(
             array(
-                'worker_num'    => 1,   //工作进程数量
-                'max_request'   => 1, //多少次调用后再重启新的进程
+                'worker_num'    => 2,   //工作进程数量
+                'max_request'   => 1000, //多少次调用后再重启新的进程
                 'daemonize' => true,
                 'log_file' => $this->logDir,
             )
