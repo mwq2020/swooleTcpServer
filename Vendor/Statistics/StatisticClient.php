@@ -68,7 +68,6 @@ class StatisticClient
 				self::$client->connect($ip, $port);
 			} else {
 				if(!self::$client->isConnected()){
-
 					if(PHP_SAPI == 'cli'){
 						self::$client = new \swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
 					} else {
