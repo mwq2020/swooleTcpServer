@@ -6,6 +6,14 @@
  * exit和die可想办法用return等语句替代
  */
 
+//cmd 调试终端 跳转到入口文件
+if(!isset($request))
+{
+    header('Location: /cmdtest.php');exit;
+}
+
+
+
 $obj = new \Framework\Controller();
 $obj->request = $request;
 $obj->response = $response;

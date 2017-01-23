@@ -38,8 +38,6 @@ class StatisticClient
 	 */
 	public static function serviceApiReport($project_name, $class_name, $function_name, $args,$cost_time, $is_success=true, $code=200, $msg='')
 	{
-		//$report_address = '127.0.0.1:55656';
-
 		if(empty(self::$config)){
 			self::config();
 		}
@@ -79,81 +77,11 @@ class StatisticClient
 			}
 			self::$client->send($bin_data);
 			self::$client->close();
-			if(PHP_SAPI != 'cli'){
+			if(PHP_SAPI == 'cli'){
 				self::$client = null;
 			}
 		} else {
 			return self::sendData($report_address, $bin_data);
-		}
-	}
-
-
-	/**
-	 * 上报http的统计结果（暂时不启用，用来统计前端页面的数据）
-	 * @param $url  当前页面的url
-	 * @param $cost_time  页面逻辑耗费的时间
-	 * @param bool|true $is_success 页面服务是否成功
-	 * @param int $http_code  http的服务状态码
-	 * @param string $msg 报错详情（有报错信息时，上传报错信息堆栈）
-	 * @return bool
-	 */
-	public static function httpReport($url, $cost_time, $is_success=true, $http_code=200, $msg='')
-	{
-		$report_address = '127.0.0.1:55656';
-		$bin_data = Protocol::encode($url, $cost_time, $is_success, $cost_time,$http_code, $msg);
-		if (extension_loaded('swoole')) {
-			if (!self::$client || (self::$client && !self::$client->isConnected())) {
-				self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
-				list($ip, $port) = explode(':', $report_address);
-				self::$client->connect($ip, $port);
-			}
-			self::$client->send($bin_data);
-			self::$client->close();
-			self::$client = null;
-		} else {
-			return self::sendData($report_address, $bin_data);
-		}
-	}
-
-
-	/**
-	 * 上报统计数据
-	 * 
-	 * @param string $module        	
-	 * @param string $interface        	
-	 * @param bool $success        	
-	 * @param int $code        	
-	 * @param string $msg        	
-	 * @param string $report_address        	
-	 * @return boolean
-	 */
-	public static function report($module, $interface, $success, $code, $msg, $report_address = '',$process_time=0)
-	{
-		$report_address = $report_address ? $report_address : '127.0.0.1:55656';
-		if (isset(self::$timeMap[$module][$interface]) && self::$timeMap[$module][$interface] > 0) {
-			$time_start = self::$timeMap[$module][$interface];
-			self::$timeMap[$module][$interface] = 0;
-		} else 
-			if (isset(self::$timeMap['']['']) && self::$timeMap[''][''] > 0) {
-				$time_start = self::$timeMap[''][''];
-				self::$timeMap[''][''] = 0;
-			} else {
-				$time_start = microtime(true);
-			}
-		
-		$cost_time = microtime(true) - $time_start;
-		$bin_data = Protocol::encode($module, $interface, $cost_time, $success, $code, $msg);
-		if (extension_loaded('swoole')) {
-		    if (!self::$client || (self::$client && !self::$client->isConnected())) {
-    		    self::$client = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC);
-    		    list($ip, $port) = explode(':', $report_address);
-    		    self::$client->connect($ip, $port);
-		    }
-	        self::$client->send($bin_data);
-	        self::$client->close();
-	        self::$client = null;
-		} else {
-    		return self::sendData($report_address, $bin_data);
 		}
 	}
 

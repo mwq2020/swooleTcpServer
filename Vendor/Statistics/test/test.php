@@ -15,12 +15,20 @@ $class_name = 'Test';
 $function_name = 'testDb';
 $args = array('id' => '1');
 $cost_time = mt_rand(1,20);
-$is_success=true;
-$code=200;
+$is_success=false;
+$code=500;
 $msg='mwq_test';
 \Statistics\StatisticClient::config('10.211.55.7:55656');
-for($i=1;$i<5;$i++)
-{
+for($i=1;$i<=5000;$i++){
+    $temp = mt_rand(1,10);
+    //echo $temp."\r\n";
+    if($temp%2 == 0) {
+        $is_success = true;
+        $code = 200;
+    } else {
+        $is_success = false;
+        $code = 500;
+    }
     \Statistics\StatisticClient::serviceApiReport($project_name, $class_name, $function_name,$args, $cost_time, $is_success, $code, $msg);
 }
 
