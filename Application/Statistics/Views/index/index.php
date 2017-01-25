@@ -1,4 +1,18 @@
 <div class="row clearfix">
+
+    <div class="col-md-12 column">
+        <div class="row clearfix">
+            <div class="col-md-12 column text-center">
+                <?php $showDay = isset($_GET['date']) && !empty($_GET['date']) ? date('Y-m-d',strtotime($_GET['date'])) : date('Y-m-d'); ?>
+                <?php for($i=13;$i>=0;$i--): ?>
+                    <?php $tempDay = date('Y-m-d',time()-$i*24*3600); ?>
+                    <a href="/?date=<?php echo $tempDay;?>" class="btn" type="button"><?php echo $tempDay == $showDay ? '<b>'.$tempDay.'</b>' : $tempDay;?></a>
+                    <?php if($i==7){ echo "<br>";};?>
+                <?php endfor; ?>
+            </div>
+        </div>
+    </div>
+
     <div class="col-md-12 column">
         <div class="row clearfix">
             <div class="col-md-12 column height-400" id="req-container" >
