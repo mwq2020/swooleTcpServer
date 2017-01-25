@@ -24,6 +24,8 @@ class Index extends \Framework\CController
         $fail_series_data = [];
         $success_time_series_data = [];
         $fail_time_series_data = [];
+
+        /*
         foreach($list as $row){
             $timestamp = $row['time_stamp'];
             $success_series_data[$timestamp]  = "[".($timestamp*1000).",{$row['success_count']}]";
@@ -43,21 +45,44 @@ class Index extends \Framework\CController
                 $fail_time_series_data[$i]    = "[".($i*1000).",0]";
             }
         }
+        */
 
-        /*
+
         //整理成每5分钟数据，看起来比较清晰些
         foreach($list as $row){
-            $timestamp = $row['time_stamp'];
-            $success_series_data[$timestamp]        += $row['success_count'];
-            $fail_series_data[$timestamp]           += $row['fail_count'];
-            $success_time_series_data[$timestamp]   += $row['success_cost_time'];
-            $fail_time_series_data[$timestamp]      += $row['fail_cost_time'];
+            $five_minute_time = $this->formatTimeIn5($row['time_stamp']);
+            if(isset($success_series_data[$five_minute_time])){
+                $success_series_data[$five_minute_time]        += $row['success_count'];
+                $fail_series_data[$five_minute_time]           += $row['fail_count'];
+                $success_time_series_data[$five_minute_time]   += $row['success_cost_time'];
+                $fail_time_series_data[$five_minute_time]      += $row['fail_cost_time'];
+            } else {
+                $success_series_data[$five_minute_time]        = $row['success_count'];
+                $fail_series_data[$five_minute_time]           = $row['fail_count'];
+                $success_time_series_data[$five_minute_time]   = $row['success_cost_time'];
+                $fail_time_series_data[$five_minute_time]      = $row['fail_cost_time'];
+            }
+        }
+
+        foreach($success_series_data as $five_minute_time => $row){
+            $success_series_data[$five_minute_time]        = "[".($five_minute_time*1000).",{$row}]";
+        }
+        foreach($fail_series_data as $five_minute_time => $row){
+            $fail_series_data[$five_minute_time]        = "[".($five_minute_time*1000).",{$row}]";
+        }
+        foreach($success_time_series_data as $five_minute_time => $row){
+            $success_time_series_data[$five_minute_time]        = "[".($five_minute_time*1000).",{$row}]";
+        }
+        foreach($fail_time_series_data as $five_minute_time => $row){
+            $fail_time_series_data[$five_minute_time]        = "[".($five_minute_time*1000).",{$row}]";
         }
 
         for($i = $start_timestamp; $i < $end_timestamp; $i += 300){
-
+            if(!isset($success_series_data[$i])){
+                $fail_series_data[$i] = "[".($i*1000).",0]";
+                $fail_time_series_data[$i]    = "[".($i*1000).",0]";
+            }
         }
-        */
 
         ksort($success_series_data);
         ksort($fail_series_data);
@@ -80,6 +105,36 @@ class Index extends \Framework\CController
     public function actionTest()
     {
         return $this->display('test');
+    }
+
+    /**
+     * 根据时间戳转成每5分钟的时间戳
+     * @param $stamp
+     * @param bool|true $is_timestamp
+     * @return bool|int|string
+     */
+    private function formatTimeIn5($stamp,$is_timestamp = true)
+    {
+        $i = date('i',$stamp);
+        if($i%5 ==0){
+            $new_time = date('Y-m-d H:i:s',$stamp);
+        } else {
+            if($i<5){
+                $i = substr($i,0,-1)."5";
+                $new_time = date('Y-m-d H:'.$i.":s",$stamp);
+            } elseif($i>55){
+                $new_time = date('Y-m-d H:00:00',$stamp+600);
+            }  else {
+                if(substr($i,-1) < 5){
+                    $i = substr($i,0,-1)."5";
+                } else {
+                    $i = (substr($i,0,-1) +1)."0";
+                }
+                $new_time = date('Y-m-d H:'.$i.':00',$stamp);
+            }
+        }
+
+        return $is_timestamp == true ? strtotime($new_time) : $new_time;
     }
 
 }

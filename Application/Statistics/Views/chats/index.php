@@ -5,6 +5,11 @@
     </div>
 </div>
 
+<div class="row clearfix">
+    <div class="col-md-12 column" id="log_list">
+
+    </div>
+</div>
 
 <script>
     $(function() {
@@ -111,12 +116,21 @@
                         success:function(ajaxData){
                             statistics_data = $.parseJSON(ajaxData.statistics_data)
                             x = ajaxData.timestamp*1000;
-                            //if(statistics_data.success_count >0 ){
-                                series.addPoint([x, statistics_data.success_count], true, true);
-                            //}
-                            //if(statistics_data.fail_count > 0){
-                                series1.addPoint([x, statistics_data.fail_count], true, true);
-                            //}
+                            series.addPoint([x, statistics_data.success_count], true, true);
+                            series1.addPoint([x, statistics_data.fail_count], true, true);
+
+                            //处理日志显示
+                            //console.log(ajaxData.log_list);
+                            if(ajaxData.log_list.length > 0){
+                                $(ajaxData.log_list).each(function(k,v){
+                                    $('#log_list').prepend('<div class="log_li"><p>请求类名：'+v.class_name+'请求方法名：'+v.function_name+'请求耗时：'+v.cost_time.toFixed(6)+'秒</p><p>请求参数：'+v.function_name+'</p><p>日志内容：'+(v.msg == '' ? '-' :v.msg)+'</p></div>')
+                                });
+                            }
+                            //console.log($('.log_li').length);
+                            if($('.log_li').length > 5){
+                                //console.log('test'+$('.log_li').length);
+                                $('.log_li').eq(4).nextAll().remove();
+                            }
                         },
                         error:function(ajaxData,textStatus){ }
                     })
@@ -124,6 +138,4 @@
                 1000);
         });
     });
-
-
 </script>
