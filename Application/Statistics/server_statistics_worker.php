@@ -177,7 +177,6 @@ class StatisticsWorker
         return $data;
     }
 
-
     /**
      * 保存统计数据到db中
      */

@@ -6,6 +6,7 @@
 </div>
 
 <div class="row clearfix">
+    <div class="col-md-12 column"><h3>实时日志内容列表（动态更新）</h3></div>
     <div class="col-md-12 column" id="log_list">
 
     </div>
@@ -70,26 +71,12 @@
                 exporting: {
                     enabled: false
                 },
-                series: [{
-                    name: '实时访问流量 2xx',
-                    data: (function() { // generate an array of random data
-                        var data = [],
-                            time = (new Date()).getTime(),
-                            i;
-                        for (i = -19; i <= 0; i++) {
-                            data.push({
-                                x: time + i * 1000,
-                                y: 0
-                            });
-                        }
-                        return data;
-                    })()
-                },
+                series: [
                     {
-                        name: '实时访问流量 5xx',
+                        name: '实时访问流量 2xx',
                         data: (function() { // generate an array of random data
                             var data = [],
-                                time = (new Date()).getTime(),
+                                time = (new Date()).getTime()-1000,
                                 i;
                             for (i = -19; i <= 0; i++) {
                                 data.push({
@@ -99,7 +86,23 @@
                             }
                             return data;
                         })()
-                    }]
+                    },
+                    {
+                        name: '实时访问流量 5xx',
+                        data: (function() { // generate an array of random data
+                            var data = [],
+                                time = (new Date()).getTime()-1000,
+                                i;
+                            for (i = -19; i <= 0; i++) {
+                                data.push({
+                                    x: time + i * 1000,
+                                    y: 0
+                                });
+                            }
+                            return data;
+                        })()
+                    }
+                ]
             }); // set up the updating of the chart each second
             var series = chart.series[0];
             var series1 = chart.series[1];
@@ -122,8 +125,9 @@
                             //处理日志显示
                             //console.log(ajaxData.log_list);
                             if(ajaxData.log_list.length > 0){
+                                //console.log(ajaxData.log_list);
                                 $(ajaxData.log_list).each(function(k,v){
-                                    $('#log_list').prepend('<div class="log_li"><p>请求类名：'+v.class_name+'请求方法名：'+v.function_name+'请求耗时：'+v.cost_time.toFixed(6)+'秒</p><p>请求参数：'+v.function_name+'</p><p>日志内容：'+(v.msg == '' ? '-' :v.msg)+'</p></div>')
+                                    $('#log_list').prepend('<div class="log_li"><p>请求类名:'+v.class_name+'&nbsp;&nbsp;请求方法名:'+v.function_name+'&nbsp;&nbsp;请求耗时:'+v.cost_time.toFixed(6)+'秒</p><p>请求参数:'+v.args+'</p><p>日志内容：'+(v.msg == '' ? '-' :v.msg)+'</p></div>')
                                 });
                             }
                             //console.log($('.log_li').length);

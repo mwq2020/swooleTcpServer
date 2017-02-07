@@ -135,7 +135,6 @@ class Protocol
 		return $packData;
 	}
 
-
 	/**
 	 * api参数加密
 	 * @param $data
