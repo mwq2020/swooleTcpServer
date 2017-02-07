@@ -74,6 +74,16 @@ class Logger extends \Framework\CController
     }
 
     /**
+     * 显示日志详情.
+     * @throws \Exception
+     */
+    public function actionInfo()
+    {
+        return $this->display('info');
+    }
+
+
+    /**
      * 获取当前时间戳的访问数据
      */
     public function actionSyncdata()
