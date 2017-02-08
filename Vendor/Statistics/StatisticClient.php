@@ -83,6 +83,7 @@ class StatisticClient
 		} else {
 			return self::sendData($report_address, $bin_data);
 		}
+		return true;
 	}
 
 	/**
