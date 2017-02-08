@@ -53,11 +53,15 @@ class Logger extends \Framework\CController
             $count = $collection->find($where)->count();
             $this->assign('count',$count);
             $log_content = '';
-            foreach($list as $row){
+            //echo "<pre>";
+            foreach($list as $id => $row){
+                //print_r($row);
                 $log_content .= '请求时间：'.date('Y-m-d H:i:s',$row['add_time']).
                                 ' 调用接口【'.$row['class_name'].'->'.$row['function_name'].'】'.
                                 ' 状态码【'.$row['code'].'】'.
-                                ' 日志内容【'.$row['msg']."】<br>";
+                                ' 日志内容【'.substr($row['msg'],0,80).'】'.
+                                ' <a href="/logger/info?project_name='.$row['project_name'].'&id='.$id.'">查看</a>'.
+                                '<br>';
             }
 
             $page = new \Model\Pagination($count,20,$_GET);
@@ -79,6 +83,12 @@ class Logger extends \Framework\CController
      */
     public function actionInfo()
     {
+        $config =\Config\Mongo::getConfig();
+        $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
+        $db = $mongo->selectDB('StatisticsLog');
+        $collection = $db->selectCollection($_GET['project_name']);
+        $info = $collection->findOne(array("_id" =>(new \MongoId($_GET['id'])) ));
+        $this->assign('info',$info);
         return $this->display('info');
     }
 

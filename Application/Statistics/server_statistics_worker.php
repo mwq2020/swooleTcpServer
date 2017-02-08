@@ -287,7 +287,7 @@ class StatisticsWorker
             $functionName   = $data['function_name'];  //调用函数名
             $cost_time      = $data['cost_time'];      //耗费时间
             $success        = $data['is_success'];     //是否成功
-            //$code           = $data['code'];           //服务code
+            $code           = $data['code'];           //服务code
             $msg            = $data['msg'];            //日志消息
             $ip = $serv->connection_info($fd)['remote_ip'];//当前链接进来的ip
 
@@ -349,7 +349,7 @@ class StatisticsWorker
             $data['add_time'] = time();
             //日志记录在mongodb【利于后期筛选】
             $mongoHander = $this->getMongo();
-            if(!empty($mongoHander)) {
+            if($code != 200 && !empty($mongoHander)) {
                 $monogoDb = $mongoHander->selectDB('StatisticsLog');
                 $mongoCollection = $monogoDb->selectCollection($projectName);
                 $mongoCollection->insert($data);

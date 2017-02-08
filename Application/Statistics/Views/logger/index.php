@@ -45,10 +45,13 @@
 </div>
 
 <div class="row clearfix">
-    <div class="col-md-12 column">
-        <ul class="pagination">
+    <div class="col-md-12 column .list-inline">
+        <?php if(isset($pageStr) && !empty($pageStr)): ?>
+        <div style="float: left;padding-top: 25px;"><span>共<?php echo $count; ?>条 &nbsp;&nbsp;</span></div>
+        <div style="float: left;height:55px;">
             <?php echo isset($pageStr) ? $pageStr : ''; ?>
-        </ul>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
 
