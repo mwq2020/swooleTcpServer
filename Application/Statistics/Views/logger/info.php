@@ -29,7 +29,7 @@
             </tr>
             <tr>
                 <td>日志内容</td>
-                <td><?php echo $info['msg']; ?></td>
+                <td><pre><?php echo $info['msg']; ?></pre></td>
             </tr>
             <tr>
                 <td>创建时间</td>

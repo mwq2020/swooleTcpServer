@@ -40,7 +40,7 @@
 
 <div class="row clearfix">
     <div class="col-md-12 column">
-        <?php echo $log_content; ?>
+        <?php echo $log_content ? $log_content : '暂无日志。。。'; ?>
     </div>
 </div>
 

@@ -89,6 +89,7 @@
                     },
                     {
                         name: '实时访问流量 5xx',
+                        color : '#9C0D0D',
                         data: (function() { // generate an array of random data
                             var data = [],
                                 time = (new Date()).getTime()-1000,
@@ -127,7 +128,7 @@
                             if(ajaxData.log_list.length > 0){
                                 //console.log(ajaxData.log_list);
                                 $(ajaxData.log_list).each(function(k,v){
-                                    $('#log_list').prepend('<div class="log_li"><p>请求类名:'+v.class_name+'&nbsp;&nbsp;请求方法名:'+v.function_name+'&nbsp;&nbsp;请求耗时:'+v.cost_time.toFixed(6)+'秒</p><p>请求参数:'+v.args+'</p><p>日志内容：'+(v.msg == '' ? '-' :v.msg)+'</p></div>')
+                                    $('#log_list').prepend('<div class="log_li"><p>请求类名:'+v.class_name+'&nbsp;&nbsp;请求方法名:'+v.function_name+'&nbsp;&nbsp;请求耗时:'+v.cost_time.toFixed(6)+'秒</p><p>请求参数:'+v.args+'</p><p>日志内容：<pre>'+(v.msg == '' ? '-' :v.msg)+'</pre></p></div>')
                                 });
                             }
                             //console.log($('.log_li').length);
