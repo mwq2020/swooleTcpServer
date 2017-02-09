@@ -122,7 +122,7 @@ class Pagination
         /* 生成URL */
         $this->parameter[$this->p] = '[PAGE]';
         //$this->url                 = 'http://'.$this->url.'?'.http_build_query($this->parameter);
-        $this->url                 = '/?'.http_build_query($this->parameter);
+        $this->url                 = '/logger/index?'.http_build_query($this->parameter);
 
         /* 计算分页信息 */
         $this->totalPages = ceil($this->totalRows / $this->listRows); //总页数
