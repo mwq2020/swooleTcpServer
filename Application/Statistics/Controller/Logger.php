@@ -58,7 +58,7 @@ class Logger extends \Framework\CController
                 //print_r($row);
                 $log_content .= '请求时间：'.date('Y-m-d H:i:s',$row['add_time']).
                                 ' 调用接口【'.$row['class_name'].'->'.$row['function_name'].'】'.
-                                ' 状态码【'.$row['code'].'】'.
+                                ' '.($row['is_success'] == true ? '成功' : '失败') .'【'.$row['code'].'】'.
                                 ' 日志内容【'.substr($row['msg'],0,70).'】'.
                                 ' <a href="/logger/info?project_name='.$row['project_name'].'&id='.$id.'">查看</a>'.
                                 '<br>';
