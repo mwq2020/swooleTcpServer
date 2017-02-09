@@ -64,7 +64,7 @@ class Logger extends \Framework\CController
                                 '<br>';
             }
 
-            $page = new \Model\Pagination($count,20,$_GET);
+            $page = new \Model\Pagination($count,$page_size,$_GET);
             $page->url = $this->domain_url.$this->request_uri;
             $this->assign('pageStr',$page->show());
 

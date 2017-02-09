@@ -27,15 +27,16 @@ $config = array(
 //$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testException();
 //print_r($res);
 
-$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testEcho('a','b','c');
-print_r($res);
+//$res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testEcho('a','b','c');
+//print_r($res);
 
 //统计代码的引入
 if(true){
 //public $default = array(
 //    'uri' => '127.0.0.1:55656',
 //    );
-    \Statistics\StatisticClient::config('10.211.55.7:55656');
+    //\Statistics\StatisticClient::config('10.211.55.7:55656');
+    \Statistics\StatisticClient::config('127.0.0.1:55656');
     $project_name = 'MyServer';
     $class_name = 'Test';
     $function_name = 'testDb';
