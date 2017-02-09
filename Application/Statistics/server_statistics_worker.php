@@ -241,14 +241,15 @@ class StatisticsWorker
                     $collection->insert($data);
                     array_push($overdueKeys,$key);
                 } else {
-                    $this->log('onTimer allplatform ['.$key.'<-->'.date('Y-m-d H:i:s',$tmp_timestamp).'] is not time to save');
+                    //$this->log('onTimer allplatform ['.$key.'<-->'.date('Y-m-d H:i:s',$tmp_timestamp).'] is not time to save');
                 }
             } elseif($key_prefix == 'second'){
+                //todo 可以分开写个7秒左右的定时器 一遍更快的回收无用的key
                 $tmp_timestamp = substr($key,7);
                 if((time() - $tmp_timestamp) >= 7) {
                     array_push($overdueKeys,$key);
+                    //$this->log('onTimer allplatform  second ['.$key.'<-->'.date('Y-m-d H:i:s',$tmp_timestamp).'] is not time to delete');
                 }
-                $this->log('onTimer allplatform  second ['.$key.'<-->'.date('Y-m-d H:i:s',$tmp_timestamp).'] is not time to save');
             } else {
                 $this->log('onTimer allplatform else ['.$key.'] is not time to save');
             }
