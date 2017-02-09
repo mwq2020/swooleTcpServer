@@ -54,7 +54,6 @@ class StatisticsWebServer
     public function onManagerStart()
     {
         swoole_set_process_name($this->serverNamePrefix.$this->serverName.' manager listen['.$this->serverHost.':'.$this->serverPort.']');
-
     }
 
     /**

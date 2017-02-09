@@ -49,7 +49,7 @@ class Logger extends \Framework\CController
             $collection = $db->selectCollection($_GET['project_name']);
 
             $startNum = ($p-1)*$page_size;
-            $list = $collection->find($where)->skip($startNum)->limit($page_size);
+            $list = $collection->find($where)->skip($startNum)->limit($page_size)->sort(array('add_time'=>-1));
             $count = $collection->find($where)->count();
             $this->assign('count',$count);
             $log_content = '';
