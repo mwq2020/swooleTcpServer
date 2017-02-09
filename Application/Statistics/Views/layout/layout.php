@@ -28,22 +28,22 @@
         <div class="col-md-12 column">
             <ul class="nav nav-tabs">
                 <li <?php if($this->controllerName == 'index'): ?>class="active"<?php endif; ?> >
-                    <a href="http://<?php echo $this->url; ?>">概述</a>
+                    <a href="/">概述</a>
                 </li>
                 <li <?php if($this->controllerName == 'statistic'): ?>class="active"<?php endif; ?> >
-                    <a href="http://<?php echo $this->url; ?>/statistic/index">监控</a>
+                    <a href="/statistic/index">监控</a>
                 </li>
                 <li <?php if($this->controllerName == 'logger'): ?>class="active"<?php endif; ?> >
-                    <a href="http://<?php echo $this->url; ?>/logger/index">日志</a>
+                    <a href="/logger/index">日志</a>
                 </li>
                 <li class="disabled">
                     <a href="http://<?php echo $this->url; ?>">告警</a>
                 </li>
                 <li <?php if($this->controllerName == 'chats'): ?>class="active"<?php endif; ?> >
-                    <a id="testPage" href="http://<?php echo $this->url; ?>/chats/index">实时统计</a>
+                    <a id="testPage" href="/chats/index">实时统计</a>
                 </li>
                 <li <?php if($this->controllerName == 'test'): ?>class="active"<?php endif; ?> >
-                    <a id="testPage" href="http://<?php echo $this->url; ?>/test/index">调试界面</a>
+                    <a id="testPage" href="/test/index">调试界面</a>
                 </li>
             </ul>
         </div>
