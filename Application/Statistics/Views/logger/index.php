@@ -1,3 +1,4 @@
+<script type="text/javascript" src="/assets/js/laydate/laydate.js"></script>
 <div class="row clearfix">
     <div class="col-md-12 column">
         <form action="" method="get">
@@ -17,10 +18,10 @@
         <input type="text" name="function_name" value="<?php echo isset($page_request['function_name']) ? $page_request['function_name'] : ''; ?>">
 
         开始时间：
-        <input type="text" name="start_time" value="<?php echo isset($page_request['start_time']) ? $page_request['start_time'] : date('Y-m-d 00:00:00'); ?>">
+        <input type="text" name="start_time" value="<?php echo isset($page_request['start_time']) ? $page_request['start_time'] : date('Y-m-d 00:00:00'); ?>"  onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})" />
 
         结束时间：
-        <input type="text" name="end_time" value="<?php echo isset($page_request['end_time']) ? $page_request['end_time'] : date('Y-m-d 23:59:59'); ?>">
+        <input type="text" name="end_time" value="<?php echo isset($page_request['end_time']) ? $page_request['end_time'] : date('Y-m-d 23:59:59'); ?>"  onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})" />
 
         <input type="submit" value="提交"/>
         </form>
