@@ -73,7 +73,7 @@ class Pagination
      * @param array $listRows  每页显示记录数
      * @param array $parameter  分页跳转的参数
      */
-    public function __construct($totalRows, $listRows = 20, $parameter = array())
+    public function __construct($totalRows, $listRows = 10, $parameter = array())
     {
         //$this->p = isset($_GET['p']) ? $_GET['p'] : 1; //设置分页参数名称
         /* 基础设置 */
