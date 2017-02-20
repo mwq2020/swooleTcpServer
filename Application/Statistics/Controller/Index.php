@@ -13,7 +13,7 @@ class Index extends \Framework\CController
         $start_timestamp = isset($_GET['date']) && !empty($_GET['date']) ? strtotime($_GET['date']) : strtotime(date('Y-m-d'));
         $end_timestamp = $start_timestamp + (24*3600) - 1;
         if(PHP_VERSION >= 7){
-            $manager = \Mongo\Connection::instance('statistics')->getMongoManager();
+            $manager = \Mongo\MongoDbConnection::instance('statistics')->getMongoManager();
             $filter = array(
                 'time_stamp' => [
                     '$gte' => $start_timestamp,
