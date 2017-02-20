@@ -213,7 +213,7 @@ class StatisticsWorker
                 );
                 if(PHP_VERSION >= 7){
                     $mongo = \Mongo\MongoDbConnection::instance('statistics');
-                    $mongo->insert($data['project_name'],$data);
+                    $mongo->insert($data['project_name'],array($data));
                 } else {
                     $mongo = \Mongo\Connection::instance('statistics');
                     $mongo->insert($data['project_name'],$data);
@@ -248,7 +248,7 @@ class StatisticsWorker
 
                     if(PHP_VERSION >= 7){
                         $mongo = \Mongo\MongoDbConnection::instance('statistics');
-                        $mongo->insert('All_Statistics',$data);
+                        $mongo->insert('All_Statistics',array($data));
                     } else {
                         $mongo = \Mongo\Connection::instance('statistics');
                         $mongo->insert('All_Statistics',$data);
@@ -365,7 +365,7 @@ class StatisticsWorker
             if($code != 200) {
                 if (PHP_VERSION >= 7) {
                     $mongo = \Mongo\MongoDbConnection::instance('statisticsLog');
-                    $mongo->insert($data['project_name'], $data);
+                    $mongo->insert($data['project_name'], array($data));
                 } else {
                     $mongo = \Mongo\Connection::instance('statisticsLog');
                     $mongo->insert($projectName, $data);
