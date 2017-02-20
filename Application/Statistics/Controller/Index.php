@@ -26,7 +26,7 @@ class Index extends \Framework\CController
             );
             $query = new \MongoDB\Driver\Query($filter, $options);
             $readPreference = new \MongoDB\Driver\ReadPreference(\MongoDB\Driver\ReadPreference::RP_PRIMARY);
-            $cursor = $manager->executeQuery("databaseName.collectionName", $query, $readPreference);
+            $cursor = $manager->executeQuery("Statistics.All_Statistics", $query, $readPreference);
             $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
             $list = array();
             foreach($cursor as $document)
