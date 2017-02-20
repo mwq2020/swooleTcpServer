@@ -362,12 +362,14 @@ class StatisticsWorker
             $data['remote_ip'] = $ip;
             $data['add_time'] = time();
             //日志记录在mongodb【利于后期筛选】
-            if(PHP_VERSION >= 7){
-                $mongo = \Mongo\MongoDbConnection::instance('statisticsLog');
-                $mongo->insert($data['project_name'],$data);
-            } else {
-                $mongo = \Mongo\Connection::instance('statisticsLog');
-                $mongo->insert($projectName,$data);
+            if($code != 200) {
+                if (PHP_VERSION >= 7) {
+                    $mongo = \Mongo\MongoDbConnection::instance('statisticsLog');
+                    $mongo->insert($data['project_name'], $data);
+                } else {
+                    $mongo = \Mongo\Connection::instance('statisticsLog');
+                    $mongo->insert($projectName, $data);
+                }
             }
 
             //存储到redis  lpush【方便后期实时收集日志展示-秒级别的日志实时展示】
