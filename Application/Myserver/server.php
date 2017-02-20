@@ -72,7 +72,8 @@ class WebSocketServer
         $class      = $data['class'];
         $method     = $data['method'];
         $param_array = $data['param_array'];
-        $ip = $server->connection_info($fd)['remote_ip'];
+        $user      = $data['user'];
+        //$ip = $server->connection_info($fd)['remote_ip'];
 
         $process_start_time = microtime(true);
         $code = 200;    //服务状态code
@@ -110,7 +111,7 @@ class WebSocketServer
 
         //上报服务结果
         try {
-            \Statistics\StatisticClient::serviceApiReport($this->serverName, $class, $method, $param_array, $process_used_time, $ret_data['flag'], $code, $msg);
+            \Statistics\StatisticClient::serviceApiReport($user,$this->serverName, $class, $method, $param_array, $process_used_time, $ret_data['flag'], $code, $msg);
         } catch (\Exception $e){
             $this->log('static error'.$e);
         }

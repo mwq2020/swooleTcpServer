@@ -21,13 +21,15 @@ class Rpc
     {
         $receiveData = null;
         try {
-            $uriAddress = HostSwitch::getInstance($this->configName)->getOneUsableAddress();
+            $uriAddress = HostSwitch::getInstance($this->configName)->getOneUsableAddressInfo();
             $client = new \swoole_client(SWOOLE_SOCK_TCP);
             if (!$client->connect($uriAddress['host'],$uriAddress['port'] , -1))
             {
                 throw new \Exception("can not connect to[".$uriAddress['host'].':'.$uriAddress['port']."] failed. Error: {$client->errCode} \r\n");
             }
-            $sendData = array('class'=>$this->className,'method'=>$method,'param_array'=>$arguments);
+
+            $userName = $uriAddress['user'];
+            $sendData = array('user'=>$userName,'class'=>$this->className,'method'=>$method,'param_array'=>$arguments);
             $client->send(json_encode($sendData));
             $receiveData =  $client->recv();
             $client->close();

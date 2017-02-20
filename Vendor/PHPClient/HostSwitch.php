@@ -42,7 +42,7 @@ class HostSwitch
     /**
      * 获取一个可用的配置通过配置名
      */
-    public function getOneUsableAddress()
+    public function getOneUsableAddressInfo()
     {
         if(empty($this->configName)){
             throw new \Exception('配置名为空【'.__FUNCTION__.'】');
@@ -64,7 +64,7 @@ class HostSwitch
             $uri = $uriList;
         }
         list($host,$port) = explode(':',$uri);
-        return array('host'=>$host,'port'=>$port);
+        return array('host'=>$host,'port'=>$port,'user'=>self::$config[$this->configName]['user']);
     }
 
 }

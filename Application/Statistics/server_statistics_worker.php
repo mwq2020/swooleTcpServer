@@ -131,9 +131,16 @@ class StatisticsWorker
      */
     public function getMongo()
     {
-        if (empty($this->mongo) || !$this->mongo->getHosts()) {
-            $config =\Config\Mongo::getConfig();
-            $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
+        $php_version = phpversion();
+        $config =\Config\Mongo::getConfig();
+        if($php_version > 7){
+            if (empty($this->mongo) || !$this->mongo->getHosts()) {
+                $this->mongo =  new \MongoDB\Driver\Manager('mongodb://'.$config['host'].':'.$config['port']);
+            }
+        } else {
+            if (empty($this->mongo) || !$this->mongo->getHosts()) {
+                $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
+            }
         }
         return $this->mongo;
     }
@@ -186,7 +193,7 @@ class StatisticsWorker
 
         //单个接口流量、耗时统计记录
         $overdueKeys = array();
-        $conn = $this->getMongo();
+        //$conn = $this->getMongo();
         foreach($server->swooleTable as $key => $row){
             $timestamp = substr($key,-10);
             if((time() - $timestamp) >= 90) {
@@ -204,10 +211,13 @@ class StatisticsWorker
                     'success_cost_time' => $row['success_cost_time'],
                     'fail_cost_time'    => $row['fail_cost_time'],
                 );
-                $db = $conn->selectDB('Statistics');
-                $collection = $db->selectCollection($data['project_name']);
-
-                $collection->insert($data);
+                if(PHP_VERSION >= 7){
+                    $mongo = \Mongo\MongoDbConnection::instance('statistics');
+                    $mongo->insert($data['project_name'],$data);
+                } else {
+                    $mongo = \Mongo\Connection::instance('statistics');
+                    $mongo->insert($data['project_name'],$data);
+                }
                 array_push($overdueKeys,$key);
             } else {
                 $this->log('onTimer api ['.$key.'<-->'.date('Y-m-d H:i:s',$timestamp).'] is not time to save');
@@ -236,9 +246,13 @@ class StatisticsWorker
                         'fail_cost_time'    => $row['fail_cost_time'],
                     );
 
-                    $db = $conn->selectDB('Statistics');
-                    $collection = $db->selectCollection('All_Statistics');
-                    $collection->insert($data);
+                    if(PHP_VERSION >= 7){
+                        $mongo = \Mongo\MongoDbConnection::instance('statistics');
+                        $mongo->insert('All_Statistics',$data);
+                    } else {
+                        $mongo = \Mongo\Connection::instance('statistics');
+                        $mongo->insert('All_Statistics',$data);
+                    }
                     array_push($overdueKeys,$key);
                 } else {
                     //$this->log('onTimer allplatform ['.$key.'<-->'.date('Y-m-d H:i:s',$tmp_timestamp).'] is not time to save');
@@ -289,7 +303,6 @@ class StatisticsWorker
             $cost_time      = $data['cost_time'];      //耗费时间
             $success        = $data['is_success'];     //是否成功
             $code           = $data['code'];           //服务code
-            $msg            = $data['msg'];            //日志消息
             $ip = $serv->connection_info($fd)['remote_ip'];//当前链接进来的ip
 
             //单一接口流量、耗时统计记录
@@ -349,12 +362,14 @@ class StatisticsWorker
             $data['remote_ip'] = $ip;
             $data['add_time'] = time();
             //日志记录在mongodb【利于后期筛选】
-            $mongoHander = $this->getMongo();
-            if($code != 200 && !empty($mongoHander)) {
-                $monogoDb = $mongoHander->selectDB('StatisticsLog');
-                $mongoCollection = $monogoDb->selectCollection($projectName);
-                $mongoCollection->insert($data);
+            if(PHP_VERSION >= 7){
+                $mongo = \Mongo\MongoDbConnection::instance('statisticsLog');
+                $mongo->insert($data['project_name'],$data);
+            } else {
+                $mongo = \Mongo\Connection::instance('statisticsLog');
+                $mongo->insert($projectName,$data);
             }
+
             //存储到redis  lpush【方便后期实时收集日志展示-秒级别的日志实时展示】
             $this->getRedis();
             if(!empty($this->redis)){

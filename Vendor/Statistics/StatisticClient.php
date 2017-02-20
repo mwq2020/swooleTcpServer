@@ -26,17 +26,18 @@ class StatisticClient
 
 	/**
 	 * service上报统计数据（在服务器端上报服务的数据，用来统计接口的数据）
-	 * @param $project_name   // 项目名称
-	 * @param $class_name     // 调用的类名
-	 * @param $function_name  // 调用的函数名
-	 * @param $args          // 传参
-	 * @param $cost_time      // service执行花费的时间
+	 * @param $user                // 使用者
+	 * @param $project_name        // 项目名称
+	 * @param $class_name          // 调用的类名
+	 * @param $function_name       // 调用的函数名
+	 * @param $args                // 传参
+	 * @param $cost_time           // service执行花费的时间
 	 * @param bool|true $is_success  //是否成功
-	 * @param int $code       // 服务的状态码（错误的状态码统计使用）
-	 * @param string $msg     // 报错服务堆栈信息（方便根据错误信息调试代码）
+	 * @param int $code            // 服务的状态码（错误的状态码统计使用）
+	 * @param string $msg          // 报错服务堆栈信息（方便根据错误信息调试代码）
 	 * @return bool
 	 */
-	public static function serviceApiReport($project_name, $class_name, $function_name, $args,$cost_time, $is_success=true, $code=200, $msg='')
+	public static function serviceApiReport($user,$project_name, $class_name, $function_name, $args,$cost_time, $is_success=true, $code=200, $msg='',$request_ip=0,$service_ip=0)
 	{
 		if(empty(self::$config)){
 			self::config();
@@ -45,6 +46,7 @@ class StatisticClient
 
 		//加密数据
 		$data = array(
+			'user' => $user,
 			'project_name' => $project_name,
 			'class_name' => $class_name,
 			'function_name' => $function_name,
@@ -53,6 +55,8 @@ class StatisticClient
 			'is_success' => $is_success,
 			'code' => $code,
 			'msg' => $msg,
+			'request_ip' => $request_ip,
+			'service_ip' => $service_ip
 		);
 		$bin_data = Protocol::apiEncode($data);
 		if (extension_loaded('swoole')) {
