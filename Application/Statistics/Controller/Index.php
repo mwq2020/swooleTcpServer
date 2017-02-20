@@ -10,15 +10,35 @@ class Index extends \Framework\CController
         //return $this->exitOut('http://127.0.0.1:55757/logger/index');
         //return $this->exitOut(array('aaaa' => 'bbbb','cccc'=>'ddddd'));
 
-        $config =\Config\Mongo::getConfig();
-        $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
-
         $start_timestamp = isset($_GET['date']) && !empty($_GET['date']) ? strtotime($_GET['date']) : strtotime(date('Y-m-d'));
         $end_timestamp = $start_timestamp + (24*3600) - 1;
-
-        $db = $mongo->selectDB('Statistics');
-        $collection = $db->selectCollection('All_Statistics');
-        $list = $collection->find(array("time_stamp" => array('$gt'=>$start_timestamp,'$lt'=>$end_timestamp)))->skip(0);
+        if(PHP_VERSION >= 7){
+            $manager = \Mongo\Connection::instance('statistics')->getMongoManager();
+            $filter = array(
+                'time_stamp' => [
+                    '$gte' => $start_timestamp,
+                    '$lte' => $end_timestamp,
+                ],
+            );
+            $options = array(
+                //"sort" => array("views" => -1),
+                'skip' => 0,
+            );
+            $query = new \MongoDB\Driver\Query($filter, $options);
+            $readPreference = new \MongoDB\Driver\ReadPreference(\MongoDB\Driver\ReadPreference::RP_PRIMARY);
+            $cursor = $manager->executeQuery("databaseName.collectionName", $query, $readPreference);
+            $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+            $list = array();
+            foreach($cursor as $document)
+            {
+                array_push($list,$document);
+            }
+        } else {
+            $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
+            $db = $mongo->selectDB('Statistics');
+            $collection = $db->selectCollection('All_Statistics');
+            $list = $collection->find(array("time_stamp" => array('$gt'=>$start_timestamp,'$lt'=>$end_timestamp)))->skip(0);
+        }
 
         $success_series_data = [];
         $fail_series_data = [];

@@ -13,10 +13,15 @@ class Statistic extends \Framework\CController
         $fail_time_series_data = [];
         try {
 
-            $config =\Config\Mongo::getConfig();
-            $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
-            $db = $mongo->selectDB('Statistics');
-            $collectionList = $db->getCollectionNames();
+            if(PHP_VERSION >= 7){
+
+            } else {
+                $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
+                $db = $mongo->selectDB('Statistics');
+                $collectionList = $db->getCollectionNames();
+            }
+
+            //去掉全局的统计
             $remove_key = array_search('All_Statistics',$collectionList);
             if($remove_key !== false){
                 unset($collectionList[$remove_key]);
@@ -38,14 +43,17 @@ class Statistic extends \Framework\CController
                 throw new \Exception('开始时间不能大于等于结束时间！');
             }
 
-            $config =\Config\Mongo::getConfig();
-            $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
-            $db = $mongo->selectDB('Statistics');
-            $collection = $db->selectCollection($_GET['project_name']);
+            if(PHP_VERSION >= 7){
 
-            $where = array();
-            $where['time_stamp'] = array('$gt'=>$start_timestamp,'$lt'=>$end_timestamp);
-            $list = $collection->find($where);
+            } else {
+                $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
+                $db = $mongo->selectDB('Statistics');
+                $collection = $db->selectCollection($_GET['project_name']);
+                $where = array();
+                $where['time_stamp'] = array('$gt'=>$start_timestamp,'$lt'=>$end_timestamp);
+                $list = $collection->find($where);
+            }
+
             foreach($list as $row){
                 $timestamp = $row['time_stamp'];
                 $success_series_data[$timestamp]  = "[".($timestamp*1000).",{$row['success_count']}]";

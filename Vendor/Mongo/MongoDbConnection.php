@@ -97,9 +97,10 @@ class MongoDbConnection
         return $this->_conn->executeCommand($this->_db, $cmd);
     }
 
-    function query($collname,array $filter, array $options)
+    function query($collectionName,array $filter, array $options)
     {
-
+        $query = new \MongoDB\Driver\Query($filter, $options);
+        return $cursor = $this->_conn->executeQuery("{$this->_db}.{$collectionName}", $query);
     }
 
     /**

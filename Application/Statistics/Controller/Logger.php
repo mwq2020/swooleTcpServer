@@ -9,10 +9,14 @@ class Logger extends \Framework\CController
         $error_msg = '';
         $log_content = '';
         try {
-            $config =\Config\Mongo::getConfig();
-            $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
-            $db = $mongo->selectDB('StatisticsLog');
-            $collectionList = $db->getCollectionNames();
+
+            if(PHP_VERSION >= 7){
+
+            } else {
+                $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
+                $db = $mongo->selectDB('StatisticsLog');
+                $collectionList = $db->getCollectionNames();
+            }
             $this->assign('collectionList',$collectionList);
 
             if(!isset($_GET['project_name'])){
@@ -46,11 +50,17 @@ class Logger extends \Framework\CController
 
             $p = isset($_GET['p']) && !empty($_GET['p']) ? intval($_GET['p']) : 1;
             $page_size = isset($_GET['page_size']) && !empty($_GET['page_size']) ? intval($_GET['page_size']) : 10;
-            $collection = $db->selectCollection($_GET['project_name']);
-
             $startNum = ($p-1)*$page_size;
-            $list = $collection->find($where)->skip($startNum)->limit($page_size)->sort(array('add_time'=>-1));
-            $count = $collection->find($where)->count();
+
+
+            if(PHP_VERSION >= 7){
+
+            } else {
+                $collection = $db->selectCollection($_GET['project_name']);
+                $list = $collection->find($where)->skip($startNum)->limit($page_size)->sort(array('add_time'=>-1));
+                $count = $collection->find($where)->count();
+            }
+
             $this->assign('count',$count);
             $log_content = '';
             //echo "<pre>";
@@ -83,11 +93,14 @@ class Logger extends \Framework\CController
      */
     public function actionInfo()
     {
-        $config =\Config\Mongo::getConfig();
-        $mongo = $this->mongo = new \MongoClient('mongodb://'.$config['host'].':'.$config['port']);
-        $db = $mongo->selectDB('StatisticsLog');
-        $collection = $db->selectCollection($_GET['project_name']);
-        $info = $collection->findOne(array("_id" =>(new \MongoId($_GET['id'])) ));
+        if(PHP_VERSION >= 7){
+
+        } else {
+            $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
+            $db = $mongo->selectDB('StatisticsLog');
+            $collection = $db->selectCollection($_GET['project_name']);
+            $info = $collection->findOne(array("_id" =>(new \MongoId($_GET['id'])) ));
+        }
         $this->assign('info',$info);
         return $this->display('info');
     }

@@ -67,7 +67,7 @@ class Connection
      * @param array $data
      * @return mixed
      */
-    function insert($collectionName,array $data)
+    public function insert($collectionName,array $data)
     {
         $db = $this->_conn->selectDB($this->_db);
         $collection = $db->selectCollection($collectionName);
@@ -84,7 +84,7 @@ class Connection
      * 获取当前mongoDB句柄
      * @return
      */
-    function getMongoManager()
+    public function getMongoConnection()
     {
         return $this->_conn;
     }
