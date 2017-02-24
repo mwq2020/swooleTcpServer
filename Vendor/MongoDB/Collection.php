@@ -49,6 +49,8 @@ use MongoDB\Operation\UpdateMany;
 use MongoDB\Operation\UpdateOne;
 use Traversable;
 
+include_once 'functions.php';
+
 class Collection
 {
     private static $defaultTypeMap = [
