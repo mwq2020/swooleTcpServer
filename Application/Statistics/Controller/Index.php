@@ -21,7 +21,6 @@ class Index extends \Framework\CController
                 ],
             );
             $options = array(
-                //"sort" => array("views" => -1),
                 'skip' => 0,
             );
             $query = new \MongoDB\Driver\Query($filter, $options);

@@ -44,7 +44,25 @@ class Statistic extends \Framework\CController
             }
 
             if(PHP_VERSION >= 7){
-
+                $manager = \Mongo\MongoDbConnection::instance('statistics')->getMongoManager();
+                $filter = array(
+                    'time_stamp' => [
+                        '$gte' => $start_timestamp,
+                        '$lte' => $end_timestamp,
+                    ],
+                );
+                $options = array(
+                    'skip' => 0,
+                );
+                $query = new \MongoDB\Driver\Query($filter, $options);
+                $readPreference = new \MongoDB\Driver\ReadPreference(\MongoDB\Driver\ReadPreference::RP_PRIMARY);
+                $cursor = $manager->executeQuery("Statistics.".$_GET['project_name'], $query, $readPreference);
+                $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+                $list = array();
+                foreach($cursor as $document)
+                {
+                    array_push($list,$document);
+                }
             } else {
                 $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
                 $db = $mongo->selectDB('Statistics');
