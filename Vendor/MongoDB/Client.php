@@ -42,6 +42,24 @@ class Client
     private $typeMap;
     private $writeConcern;
 
+
+    private static $_config = [];
+
+
+    /**
+     * 获取配置(初始化配置或者自动获取配置)
+     * @param string $config
+     */
+    public static function config($config=array())
+    {
+        if(!empty($config)){
+            self::$_config = $config;
+        } else {
+            self::$_config = (array) new \Config\Mongo();
+        }
+        return self::$_config;
+    }
+
     /**
      * Constructs a new Client instance.
      *
@@ -65,8 +83,23 @@ class Client
      * @throws DriverInvalidArgumentException for parameter/option parsing errors in the driver
      * @throws DriverRuntimeException for other driver errors (e.g. connection errors)
      */
-    public function __construct($uri = 'mongodb://127.0.0.1/', array $uriOptions = [], array $driverOptions = [])
+    public function __construct($configKey, array $uriOptions = [], array $driverOptions = [])
     {
+
+        if (!$configKey) {
+            throw new \Exception('mongo配置key不能为空');
+        }
+
+        if(empty(self::$_config)){
+            self::config();
+        }
+
+        if(!isset(self::$_config[$configKey]) || empty(self::$_config[$configKey])){
+            throw new \Exception('mongo配置key['.$configKey.']内容为空');
+        }
+
+        $uri = self::$_config[$configKey]['uri'];
+
         $driverOptions += ['typeMap' => self::$defaultTypeMap];
 
         if (isset($driverOptions['typeMap']) && ! is_array($driverOptions['typeMap'])) {
@@ -212,4 +245,5 @@ class Client
 
         return new Database($this->manager, $databaseName, $options);
     }
+
 }

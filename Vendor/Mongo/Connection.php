@@ -57,7 +57,7 @@ class Connection
      */
     private function __construct(array $conf)
     {
-        $this->_conn = new \MongoClient($conf['url']);
+        $this->_conn = new \MongoClient($conf['uri']);
         $this->_db   = $conf['dbname'];
     }
 

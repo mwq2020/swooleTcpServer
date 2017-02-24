@@ -67,7 +67,7 @@ class MongoDbConnection
      */
     private function __construct(array $conf)
     {
-        $this->_conn = new \MongoDB\Driver\Manager($conf['url']);
+        $this->_conn = new \MongoDB\Driver\Manager($conf['uri']);
         $this->_db   = $conf['dbname'];
     }
 

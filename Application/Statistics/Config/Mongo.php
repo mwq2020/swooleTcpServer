@@ -15,8 +15,8 @@ class Mongo
         return $config;
     }
 
-    public $default = ['url' => 'mongodb://127.0.0.1:27017','dbname' => 'default'];
-    public $statistics = ['url' => 'mongodb://127.0.0.1:27017','dbname' => 'Statistics'];
-    public $statisticsLog = ['url' => 'mongodb://127.0.0.1:27017','dbname' => 'StatisticsLog'];
+    public $default = ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'default'];
+    public $statistics = ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'Statistics'];
+    public $statisticsLog = ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'StatisticsLog'];
 
 }

@@ -5,7 +5,16 @@ error_reporting(E_ALL | E_STRICT);
 include_once __DIR__.'/../../../Vendor/Bootstrap/Autoloader.php';
 \Bootstrap\Autoloader::instance()->addRoot(__DIR__.'/../../../Vendor/')->init();
 
-$manager = new \MongoDB\Driver\Manager("mongodb://127.0.0.1:27017");
+//$manager = new \MongoDB\Driver\Manager("mongodb://127.0.0.1:27017");
+
+$config = array(
+    'default' => ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'default'],
+    'statistics' => ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'Statistics'],
+    'statisticsLog' => ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'StatisticsLog'],
+);
+
+\MongoDB\Client::config($config);
+$manager = new \MongoDB\Client('default');
 $collection = new \MongoDB\Collection($manager, 'test','test');
 
 
@@ -31,4 +40,10 @@ var_dump($dataList);
 
 $count = $collection->count();
 var_dump($count);
+
+
+
+
+
+
 
