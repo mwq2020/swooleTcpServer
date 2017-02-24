@@ -14,7 +14,15 @@ class Statistic extends \Framework\CController
         try {
 
             if(PHP_VERSION >= 7){
-
+                $manager = (new \MongoDB\Client('statistics'))->getManager();
+                $collectionListObj = (new \MongoDB\Database($manager,'Statistics'))->listCollections();
+                $collectionList = array();
+                foreach($collectionListObj as $row){
+                    if($row->getName() == 'system.indexes'){
+                        continue;
+                    }
+                    array_push($collectionList,$row->getName());
+                }
             } else {
                 $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
                 $db = $mongo->selectDB('Statistics');

@@ -14,7 +14,8 @@ $config = array(
 );
 
 \MongoDB\Client::config($config);
-$manager = new \MongoDB\Client('default');
+$client = new \MongoDB\Client('default');
+$manager = $client->getManager();
 $collection = new \MongoDB\Collection($manager, 'test','test');
 
 
@@ -40,6 +41,18 @@ var_dump($dataList);
 
 $count = $collection->count();
 var_dump($count);
+
+
+$collectionListObj = (new \MongoDB\Database($manager,'StatisticsLog'))->listCollections();
+$collectionList = array();
+foreach($collectionListObj as $row){
+    if($row->getName() == 'system.indexes'){
+        continue;
+    }
+    array_push($collectionList,$row->getName());
+}
+
+print_r($collectionList);
 
 
 
