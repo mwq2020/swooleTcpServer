@@ -55,6 +55,28 @@ foreach($collectionListObj as $row){
 print_r($collectionList);
 
 
+$collection =  new \MongoDB\Collection($manager, 'StatisticsLog','MyServer');
+
+$start_timestamp = strtotime('2017-01-21');
+$end_timestamp = strtotime('2017-02-24');
+$filter  = array(
+    'time_stamp' => [
+        '$gte' => $start_timestamp,
+        '$lte' => $end_timestamp,
+    ],
+);
+$count = $collection->count($filter);
+
+$list = $collection->find($filter);
+var_dump($list);
+foreach($list as $key => $row){
+        var_dump($key);
+    var_dump($row);
+    exit;
+}
+
+
+
 
 
 
