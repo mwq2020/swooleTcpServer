@@ -64,10 +64,10 @@ class Logger extends \Framework\CController
             if(PHP_VERSION >= 7){
                 $manager = \Mongo\MongoDbConnection::instance('statisticsLog')->getMongoManager();
                 $filter = array(
-                    'time_stamp' => [
-                        '$gte' => $start_timestamp,
-                        '$lte' => $end_timestamp,
-                    ],
+                    //'time_stamp' => [
+                    //    '$gte' => $start_timestamp,
+                    //    '$lte' => $end_timestamp,
+                    //],
                 );
                 $options = array(
                     'skip' => 0,
@@ -79,11 +79,11 @@ class Logger extends \Framework\CController
                 $list = array();
                 foreach($cursor as $document)
                 {
-                    array_push($list,$document);
+                    $list[$document['_id']] = $document;
+                    //array_push($list,$document);
                 }
 
                 $count = (new \MongoDB\Collection($manager,'StatisticsLog',$_GET['project_name']))->count($filter);
-                //$count = $collection->find($where)->count();
             } else {
                 $collection = $db->selectCollection($_GET['project_name']);
                 $list = $collection->find($where)->skip($startNum)->limit($page_size)->sort(array('add_time'=>-1));
@@ -92,9 +92,7 @@ class Logger extends \Framework\CController
 
             $this->assign('count',$count);
             $log_content = '';
-            //echo "<pre>";
             foreach($list as $id => $row){
-                //print_r($row);
                 $log_content .= '请求时间：'.date('Y-m-d H:i:s',$row['add_time']).
                                 ' 调用接口【'.$row['class_name'].'->'.$row['function_name'].'】'.
                                 ' '.($row['is_success'] == true ? '成功' : '失败') .'【'.$row['code'].'】'.
@@ -123,6 +121,10 @@ class Logger extends \Framework\CController
     public function actionInfo()
     {
         if(PHP_VERSION >= 7){
+            $manager = \Mongo\MongoDbConnection::instance('statisticsLog')->getMongoManager();
+            $info = (new \MongoDB\Collection($manager,'StatisticsLog',$_GET['project_name']))->findOne(['_id'=>$_GET['id']]);
+            echo "<pre>";
+            print_r($info);
 
         } else {
             $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
