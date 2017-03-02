@@ -82,7 +82,8 @@ class Logger extends \Framework\CController
                     array_push($list,$document);
                 }
 
-                $count = $collection->find($where)->count();
+                $count = (new \MongoDB\Collection($manager,'StatisticsLog',$_GET['project_name']))->count($filter);
+                //$count = $collection->find($where)->count();
             } else {
                 $collection = $db->selectCollection($_GET['project_name']);
                 $list = $collection->find($where)->skip($startNum)->limit($page_size)->sort(array('add_time'=>-1));
