@@ -62,7 +62,7 @@ class Logger extends \Framework\CController
 
 
             if(PHP_VERSION >= 7){
-                $manager = \Mongo\MongoDbConnection::instance('statistics')->getMongoManager();
+                $manager = \Mongo\MongoDbConnection::instance('statisticsLog')->getMongoManager();
                 $filter = array(
                     'time_stamp' => [
                         '$gte' => $start_timestamp,
@@ -74,7 +74,7 @@ class Logger extends \Framework\CController
                 );
                 $query = new \MongoDB\Driver\Query($filter, $options);
                 $readPreference = new \MongoDB\Driver\ReadPreference(\MongoDB\Driver\ReadPreference::RP_PRIMARY);
-                $cursor = $manager->executeQuery("Statistics.".$_GET['project_name'], $query, $readPreference);
+                $cursor = $manager->executeQuery("StatisticsLog.".$_GET['project_name'], $query, $readPreference);
                 $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
                 $list = array();
                 foreach($cursor as $document)
