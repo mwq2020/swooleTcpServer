@@ -120,6 +120,13 @@ class StatisticsWebServer
             $result = $e->getMessage();
             $response->end($result);
             unset($result);
+        } catch (Error $e) {
+            $response->status(500);
+            $result = $e->getMessage();
+            $response->end($result);
+            unset($result);
+        } finally { // try return 后也能执行
+
         }
     }
 

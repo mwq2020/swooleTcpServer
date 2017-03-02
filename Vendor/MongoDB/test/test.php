@@ -70,9 +70,13 @@ $count = $collection->count($filter);
 $list = $collection->find($filter);
 var_dump($list);
 foreach($list as $key => $row){
-        var_dump($key);
+    var_dump($key);
     var_dump($row);
     exit;
+}
+
+foreach ($list->listIndexes() as $indexInfo) {
+    var_dump($indexInfo);
 }
 
 

@@ -106,6 +106,10 @@ class WebSocketServer
             $code = $e->getCode() == 200 ? 2001 : ($e->getCode() ? $e->getCode() : 500);
             $msg = ''.$e;
             $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>''.$e, 'data'=>$e);
+        } catch (Error $e) {
+            $code = $e->getCode() == 200 ? 2001 : ($e->getCode() ? $e->getCode() : 500);
+            $msg = ''.$e;
+            $ret_data = array('code'=>$code,'flag'=>false, 'msg'=>''.$e, 'data'=>$e);
         }
         $process_used_time = microtime(true)- $process_start_time;
 

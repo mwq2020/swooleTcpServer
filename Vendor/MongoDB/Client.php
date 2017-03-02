@@ -28,6 +28,8 @@ use MongoDB\Model\DatabaseInfoIterator;
 use MongoDB\Operation\DropDatabase;
 use MongoDB\Operation\ListDatabases;
 
+include_once 'functions.php';
+
 class Client
 {
     private static $defaultTypeMap = [
