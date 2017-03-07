@@ -14,23 +14,13 @@ class Index extends \Framework\CController
         $end_timestamp = $start_timestamp + (24*3600) - 1;
         if(PHP_VERSION >= 7){
             $manager = \Mongo\MongoDbConnection::instance('statistics')->getMongoManager();
-            $filter = array(
-                'time_stamp' => [
-                    '$gte' => $start_timestamp,
-                    '$lte' => $end_timestamp,
-                ],
-            );
-            $options = array(
-                'skip' => 0,
-            );
-            $query = new \MongoDB\Driver\Query($filter, $options);
-            $readPreference = new \MongoDB\Driver\ReadPreference(\MongoDB\Driver\ReadPreference::RP_PRIMARY);
-            $cursor = $manager->executeQuery("Statistics.All_Statistics", $query, $readPreference);
-            $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+            $where = array('time_stamp' => [ '$gte' => $start_timestamp, '$lte' => $end_timestamp, ]);
+            $options = array( 'skip' => 0, );
+            $collection = new \MongoDB\Collection($manager, 'Statistics','All_Statistics');
+            $dataList = $collection->find($where, $options);
             $list = array();
-            foreach($cursor as $document)
-            {
-                array_push($list,$document);
+            foreach($dataList as $row) {
+                array_push($list,$row);
             }
         } else {
             $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
@@ -65,7 +55,6 @@ class Index extends \Framework\CController
             }
         }
         */
-
 
         //整理成每5分钟数据，看起来比较清晰些
         foreach($list as $row){

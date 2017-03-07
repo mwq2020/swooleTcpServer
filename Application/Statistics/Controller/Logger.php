@@ -9,7 +9,6 @@ class Logger extends \Framework\CController
         $error_msg = '';
         $log_content = '';
         try {
-
             if(PHP_VERSION >= 7){
                 $manager = (new \MongoDB\Client('statistics'))->getManager();
                 $collectionListObj = (new \MongoDB\Database($manager,'StatisticsLog'))->listCollections();
@@ -64,7 +63,7 @@ class Logger extends \Framework\CController
                 $manager = \Mongo\MongoDbConnection::instance('statisticsLog')->getMongoManager();
                 $where['add_time'] = ['$gte' => $start_timestamp,'$lte' => $end_timestamp];
                 $options = array( 'skip' => 0,);
-                $collection = new \MongoDB\Collection($manager, 'StatisticsLog','MyServer');
+                $collection = new \MongoDB\Collection($manager, 'StatisticsLog',$_GET['project_name']);
                 $dataList = $collection->find($where, $options);
                 $list = array();
                 foreach($dataList as $row) {

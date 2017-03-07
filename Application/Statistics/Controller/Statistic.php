@@ -53,30 +53,36 @@ class Statistic extends \Framework\CController
 
             if(PHP_VERSION >= 7){
                 $manager = \Mongo\MongoDbConnection::instance('statistics')->getMongoManager();
-                $filter = array(
-                    'time_stamp' => [
-                        '$gte' => $start_timestamp,
-                        '$lte' => $end_timestamp,
-                    ],
-                );
-                $options = array(
-                    'skip' => 0,
-                );
-                $query = new \MongoDB\Driver\Query($filter, $options);
-                $readPreference = new \MongoDB\Driver\ReadPreference(\MongoDB\Driver\ReadPreference::RP_PRIMARY);
-                $cursor = $manager->executeQuery("Statistics.".$_GET['project_name'], $query, $readPreference);
-                $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
-                $list = array();
-                foreach($cursor as $document)
-                {
-                    array_push($list,$document);
+                $where = array();
+                $where['time_stamp'] = array('$gte'=>$start_timestamp,'$lte'=>$end_timestamp);
+                $where = array();
+                if(!empty($_GET['class_name'])){
+                    $where['class_name'] = $_GET['class_name'];
                 }
+                if(!empty($_GET['function_name'])){
+                    $where['function_name'] = $_GET['function_name'];
+                }
+                $options = array( 'skip' => 0, );
+                $collection = new \MongoDB\Collection($manager, 'Statistics',$_GET['project_name']);
+                $dataList = $collection->find($where, $options);
+                $list = array();
+                foreach($dataList as $row) {
+                    array_push($list,$row);
+                }
+
             } else {
                 $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
                 $db = $mongo->selectDB('Statistics');
                 $collection = $db->selectCollection($_GET['project_name']);
                 $where = array();
                 $where['time_stamp'] = array('$gt'=>$start_timestamp,'$lt'=>$end_timestamp);
+                $where = array();
+                if(!empty($_GET['class_name'])){
+                    $where['class_name'] = $_GET['class_name'];
+                }
+                if(!empty($_GET['function_name'])){
+                    $where['function_name'] = $_GET['function_name'];
+                }
                 $list = $collection->find($where);
             }
 
