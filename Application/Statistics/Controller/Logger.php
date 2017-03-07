@@ -48,7 +48,6 @@ class Logger extends \Framework\CController
             }
 
             $where = array();
-            $where['add_time'] = array('$gt'=>$start_timestamp,'$lt'=>$end_timestamp);
             if(!empty($_GET['class_name'])){
                 $where['class_name'] = $_GET['class_name'];
             }
@@ -63,28 +62,18 @@ class Logger extends \Framework\CController
 
             if(PHP_VERSION >= 7){
                 $manager = \Mongo\MongoDbConnection::instance('statisticsLog')->getMongoManager();
-                $filter = array(
-                    //'time_stamp' => [
-                    //    '$gte' => $start_timestamp,
-                    //    '$lte' => $end_timestamp,
-                    //],
-                );
-                $options = array(
-                    'skip' => 0,
-                );
-                $query = new \MongoDB\Driver\Query($filter, $options);
-                $readPreference = new \MongoDB\Driver\ReadPreference(\MongoDB\Driver\ReadPreference::RP_PRIMARY);
-                $cursor = $manager->executeQuery("StatisticsLog.".$_GET['project_name'], $query, $readPreference);
-                $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+                $where['add_time'] = ['$gte' => $start_timestamp,'$lte' => $end_timestamp];
+                $options = array( 'skip' => 0,);
+                $collection = new \MongoDB\Collection($manager, 'StatisticsLog','MyServer');
+                $dataList = $collection->find($where, $options);
                 $list = array();
-                foreach($cursor as $document)
-                {
-                    $list[$document['_id']] = $document;
-                    //array_push($list,$document);
+                foreach($dataList as $row) {
+                    $id = $row['_id']->__toString();
+                    $list[$id] = $row;
                 }
-
-                $count = (new \MongoDB\Collection($manager,'StatisticsLog',$_GET['project_name']))->count($filter);
+                $count = (new \MongoDB\Collection($manager,'StatisticsLog',$_GET['project_name']))->count($where);
             } else {
+                $where['add_time'] = array('$gte'=>$start_timestamp,'$lte'=>$end_timestamp);
                 $collection = $db->selectCollection($_GET['project_name']);
                 $list = $collection->find($where)->skip($startNum)->limit($page_size)->sort(array('add_time'=>-1));
                 $count = $collection->find($where)->count();
@@ -122,10 +111,7 @@ class Logger extends \Framework\CController
     {
         if(PHP_VERSION >= 7){
             $manager = \Mongo\MongoDbConnection::instance('statisticsLog')->getMongoManager();
-            $info = (new \MongoDB\Collection($manager,'StatisticsLog',$_GET['project_name']))->findOne(['_id'=>$_GET['id']]);
-            echo "<pre>";
-            print_r($info);
-
+            $info = (new \MongoDB\Collection($manager,'StatisticsLog',$_GET['project_name']))->findOne(['_id'=>(new \MongoDB\BSON\ObjectID($_GET['id']))]);
         } else {
             $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
             $db = $mongo->selectDB('StatisticsLog');
