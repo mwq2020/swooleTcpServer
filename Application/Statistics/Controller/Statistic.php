@@ -55,21 +55,19 @@ class Statistic extends \Framework\CController
                 $manager = \Mongo\MongoDbConnection::instance('statistics')->getMongoManager();
                 $where = array();
                 $where['time_stamp'] = array('$gte'=>$start_timestamp,'$lte'=>$end_timestamp);
-                $where = array();
                 if(!empty($_GET['class_name'])){
                     $where['class_name'] = $_GET['class_name'];
                 }
                 if(!empty($_GET['function_name'])){
                     $where['function_name'] = $_GET['function_name'];
                 }
-                $options = array( 'skip' => 0, );
+                $options = array('skip' => 0);
                 $collection = new \MongoDB\Collection($manager, 'Statistics',$_GET['project_name']);
                 $dataList = $collection->find($where, $options);
                 $list = array();
                 foreach($dataList as $row) {
                     array_push($list,$row);
                 }
-
             } else {
                 $mongo = \Mongo\Connection::instance('statistics')->getMongoConnection();
                 $db = $mongo->selectDB('Statistics');
