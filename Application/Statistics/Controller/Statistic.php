@@ -52,7 +52,6 @@ class Statistic extends \Framework\CController
             }
 
             if(PHP_VERSION >= 7){
-                $manager = \Mongo\MongoDbConnection::instance('statistics')->getMongoManager();
                 $where = array();
                 $where['time_stamp'] = array('$gte'=>$start_timestamp,'$lte'=>$end_timestamp);
                 if(!empty($_GET['class_name'])){
