@@ -53,7 +53,9 @@ class Logger extends \Framework\CController
             if(!empty($_GET['function_name'])){
                 $where['function_name'] = $_GET['function_name'];
             }
-
+            if(!empty($_GET['project_name'])){
+                $where['project_name'] = $_GET['project_name'];
+            }
             $p = isset($_GET['p']) && !empty($_GET['p']) ? intval($_GET['p']) : 1;
             $page_size = isset($_GET['page_size']) && !empty($_GET['page_size']) ? intval($_GET['page_size']) : 10;
             $startNum = ($p-1)*$page_size;

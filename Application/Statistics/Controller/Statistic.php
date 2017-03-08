@@ -54,11 +54,14 @@ class Statistic extends \Framework\CController
             if(PHP_VERSION >= 7){
                 $where = array();
                 $where['time_stamp'] = array('$gte'=>$start_timestamp,'$lte'=>$end_timestamp);
-                if(!empty($_GET['class_name'])){
-                    $where['class_name'] = $_GET['class_name'];
+                if(!empty($_GET['project_name'])){
+                    $where['project_name'] = $_GET['project_name'];
                 }
                 if(!empty($_GET['function_name'])){
                     $where['function_name'] = $_GET['function_name'];
+                }
+                if(!empty($_GET['project_name'])){
+                    $where['project_name'] = $_GET['project_name'];
                 }
                 $options = array('skip' => 0);
                 $collection = new \MongoDB\Collection($manager, 'Statistics',$_GET['project_name']);
@@ -79,6 +82,9 @@ class Statistic extends \Framework\CController
                 }
                 if(!empty($_GET['function_name'])){
                     $where['function_name'] = $_GET['function_name'];
+                }
+                if(!empty($_GET['project_name'])){
+                    $where['project_name'] = $_GET['project_name'];
                 }
                 $list = $collection->find($where);
             }

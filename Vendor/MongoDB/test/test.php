@@ -9,15 +9,35 @@ include_once __DIR__.'/../../../Vendor/Bootstrap/Autoloader.php';
 
 $config = array(
     'default' => ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'default'],
-    'statistics' => ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'Statistics'],
+    //'statistics' => ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'Statistics'],
+    'statistics' => ['uri' => 'mongodb://10.211.55.7:27017','dbname' => 'Statistics'],
     'statisticsLog' => ['uri' => 'mongodb://127.0.0.1:27017','dbname' => 'StatisticsLog'],
 );
 
 \MongoDB\Client::config($config);
-$client = new \MongoDB\Client('default');
-$manager = $client->getManager();
-$collection = new \MongoDB\Collection($manager, 'StatisticsLog','MyServer');
+//$client = new \MongoDB\Client('default');
+//$manager = $client->getManager();
+//$collection = new \MongoDB\Collection($manager, 'StatisticsLog','MyServer');
 
+$manager = (new \MongoDB\Client('statistics'))->getManager();
+
+$start_timestamp = strtotime('2017-03-08 00:00:00');
+$end_timestamp = strtotime('2017-03-08 23:59:59');
+
+$where = array();
+$where['time_stamp'] = array('$gte'=>$start_timestamp,'$lte'=>$end_timestamp);
+$where['project_name'] = 'MyServer';
+
+$options = array('skip' => 0);
+$collection = new \MongoDB\Collection($manager, 'Statistics','MyServer');
+$dataList = $collection->find($where, $options);
+$list = array();
+foreach($dataList as $row) {
+    array_push($list,$row);
+}
+
+print_r($list);
+exit;
 
 // 插入一条数据
 //$data = array('id' => 2, 'age' => 20, 'name' => '张三');
