@@ -112,22 +112,23 @@ class StatisticsWebServer
                 $response->header("Content-Type", "text/html;charset=utf-8");
                 $result = empty($result) ? '' : $result;
                 $response->status(200);
-                $response->end($result);
+                return $response->end($result);
             }
-            unset($result);
+            //unset($result);
         } catch (Exception $e) {
             $response->status(500);
             $result = $e->getMessage();
-            $response->end($result);
-            unset($result);
+            return  $response->end($result);
+            //unset($result);
         } catch (Error $e) {
             $response->status(500);
             $result = $e->getMessage();
-            $response->end($result);
-            unset($result);
+            return  $response->end($result);
+            //unset($result);
         } finally { // try return 后也能执行
 
         }
+        return $response->end('');
     }
 
     /**
