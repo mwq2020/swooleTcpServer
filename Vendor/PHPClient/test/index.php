@@ -18,5 +18,5 @@ $config = array(
 
 for($i=1;$i<1000;$i++){
     $res = \PHPClient\Rpc::getInstance('ClubService')->setClassName('Test')->testEcho('a','b','c');
-    //print_r($res);
+    print_r($res);
 }

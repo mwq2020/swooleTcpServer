@@ -7,11 +7,14 @@ class Rpc
     public static $autoException;
     public $logDir = '/tmp/rpc_client.log';
 
-    public $configName; //要访问的服务名
+    public $configName;  //要访问的服务名
     public $className;   //要访问的类名
-    public $allConfig;
+    public $allConfig;   //所有的配置数据
 
-    public function __construct($configName)
+    public static $fixUri = true; //设置从固定的接口机器【true每次固定访问接口机器 false每次调用接口都随机访问接口机器
+    public $uriInfo;
+
+    private function __construct($configName)
     {
         $this->configName = $configName;
         return $this;
@@ -21,18 +24,24 @@ class Rpc
     {
         $receiveData = null;
         try {
-            $uriAddress = HostSwitch::getInstance($this->configName)->getOneUsableAddressInfo();
-            $client = new \swoole_client(SWOOLE_SOCK_TCP);
-            if (!$client->connect($uriAddress['host'],$uriAddress['port'] , -1))
-            {
-                throw new \Exception("can not connect to[".$uriAddress['host'].':'.$uriAddress['port']."] failed. Error: {$client->errCode} \r\n");
+            if(self::$fixUri === false || empty($this->uriInfo)){
+                $uriAddress = HostSwitch::getInstance($this->configName)->getOneUsableAddressInfo();
+                $this->uriInfo = $uriAddress;
+            } else {
+                $uriAddress = $this->uriInfo;
             }
 
             $userName = $uriAddress['user'];
             $sendData = array('user'=>$userName,'class'=>$this->className,'method'=>$method,'param_array'=>$arguments);
-            $client->send(json_encode($sendData));
-            $receiveData =  $client->recv();
-            $client->close();
+
+            if(extension_loaded('swoole')){
+                $receiveData = $this->getSwooleData($uriAddress,$sendData);
+            } elseif (extension_loaded('sockets')) {
+                $receiveData = $this->getSocketData($uriAddress,$sendData);
+            } else {
+                throw new \Exception('PHP缺少swoole或者sockets的扩展');
+            }
+
             if(empty($receiveData)){
                 throw new \Exception('数据为空');
             }
@@ -56,38 +65,9 @@ class Rpc
         return $receiveData;
     }
 
-
-    // 发送数据的时候回调的时候回调[模拟回调]
-    public function oneSend()
-    {
-
-    }
-
-    // 客户端连接服务器成功后会回调此函数。[自带回调]
-    public function onConnect()
-    {
-
-    }
-
-    // 接收数据的时候回调[自带回调]异步时调用
-    public function onReceive($cli, $data)
-    {
-        return $data;
-    }
-
-    //连接服务器失败时会回调此函数。 UDP客户端没有onError回调[自带回调]
-    public function onError()
-    {
-
-    }
-
-    // 连接被关闭时回调此函数。[自带回调]
-    public function onClose()
-    {
-
-    }
-
-    //开启单例模式
+    /*
+     * 开启单例模式
+     */
     public static function getInstance($configName,$autoException=false)
     {
         if(empty($configName)){
@@ -102,11 +82,58 @@ class Rpc
         return self::$instance[$configName];
     }
 
-    //设置调用的类名
+    /*
+     * 设置调用的类名
+     */
     public function setClassName($className)
     {
         $this->className = $className;
         return $this;
+    }
+
+    /**
+     * 如果没安装swoole，通过socket获取数据.
+     * @param $uriAddress
+     * @param $sendData
+     * @return string
+     * @throws \Exception
+     */
+    private function getSocketData($uriAddress,$sendData)
+    {
+        $address = $uriAddress['host'].':'.$uriAddress['port'];
+        $conn = stream_socket_client("tcp://{$address}", $err_no, $err_msg);
+        if(!$conn)
+        {
+            throw new \Exception("can not connect to $address , $err_no:$err_msg");
+        }
+        stream_set_blocking($conn, true);
+        stream_set_timeout($conn, 4);
+        $sendData = json_encode($sendData);
+        if(fwrite($conn, $sendData) !== strlen($sendData)) {
+            throw new \Exception('Can not send data');
+        }
+
+        return fgets($conn);
+    }
+
+    /**
+     * 通过swoole客户端和api服务器交互数据。
+     * @param $uriAddress
+     * @param $sendData
+     * @return mixed
+     * @throws \Exception
+     */
+    private function getSwooleData($uriAddress,$sendData)
+    {
+        $client = new \swoole_client(SWOOLE_SOCK_TCP,SWOOLE_SOCK_SYNC);
+        if (!$client->connect($uriAddress['host'],$uriAddress['port'] , -1))
+        {
+            throw new \Exception("can not connect to[".$uriAddress['host'].':'.$uriAddress['port']."] failed. Error: {$client->errCode} \r\n");
+        }
+        $client->send(json_encode($sendData));
+        $receiveData =  $client->recv();
+        $client->close();
+        return $receiveData;
     }
 
 }
