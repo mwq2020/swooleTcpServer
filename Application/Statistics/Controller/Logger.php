@@ -64,7 +64,7 @@ class Logger extends \Framework\CController
             if(PHP_VERSION >= 7){
                 $manager = \Mongo\MongoDbConnection::instance('statisticsLog')->getMongoManager();
                 $where['add_time'] = ['$gte' => $start_timestamp,'$lte' => $end_timestamp];
-                $options = array( 'skip' => 0,);
+                $options = array('skip' => $startNum,'limit' => $page_size);
                 $collection = new \MongoDB\Collection($manager, 'StatisticsLog',$_GET['project_name']);
                 $dataList = $collection->find($where, $options);
                 $list = array();
