@@ -89,23 +89,63 @@ class Statistic extends \Framework\CController
                 $list = $collection->find($where);
             }
 
+            //整理成每5分钟数据，看起来比较清晰些
+            $success_series_data = [];
+            $fail_series_data = [];
+            $success_time_series_data = [];
+            $fail_time_series_data = [];
             foreach($list as $row){
-                $timestamp = $row['time_stamp'];
-                $success_series_data[$timestamp]  = "[".($timestamp*1000).",{$row['success_count']}]";
-                $fail_series_data[$timestamp]     = "[".($timestamp*1000).",{$row['fail_count']}]";
-                if($row['success_count'] > 0){
-                    $success_time_series_data[$timestamp] = "[".($timestamp*1000).",".($row['success_cost_time']/$row['success_count'])."]";
-                }
-                if($row['fail_count'] > 0){
-                    $fail_time_series_data[$timestamp]    = "[".($timestamp*1000).",".($row['fail_cost_time']/$row['fail_count'])."]";
+                if(isset($success_series_data[$row['time_stamp']])){
+                    $success_series_data[$row['time_stamp']]        += $row['success_count'];
+                    $fail_series_data[$row['time_stamp']]           += $row['fail_count'];
+                    $success_time_series_data[$row['time_stamp']]   += $row['success_cost_time'];
+                    $fail_time_series_data[$row['time_stamp']]      += $row['fail_cost_time'];
+                } else {
+                    $success_series_data[$row['time_stamp']]        = $row['success_count'];
+                    $fail_series_data[$row['time_stamp']]           = $row['fail_count'];
+                    $success_time_series_data[$row['time_stamp']]   = $row['success_cost_time'];
+                    $fail_time_series_data[$row['time_stamp']]      = $row['fail_cost_time'];
                 }
             }
+
+            foreach($success_series_data as $time_stamp => $row){
+                $success_series_data[$time_stamp]        = "[".($time_stamp*1000).",{$row}]";
+            }
+            foreach($fail_series_data as $time_stamp => $row){
+                $fail_series_data[$time_stamp]        = "[".($time_stamp*1000).",{$row}]";
+            }
+            foreach($success_time_series_data as $time_stamp => $row){
+                $success_time_series_data[$time_stamp]        = "[".($time_stamp*1000).",{$row}]";
+            }
+            foreach($fail_time_series_data as $time_stamp => $row){
+                $fail_time_series_data[$time_stamp]        = "[".($time_stamp*1000).",{$row}]";
+            }
+
             for($i = $start_timestamp; $i < $end_timestamp; $i += 60){
                 if(!isset($success_series_data[$i])){
                     $fail_series_data[$i] = "[".($i*1000).",0]";
                     $fail_time_series_data[$i]    = "[".($i*1000).",0]";
                 }
             }
+
+
+//            foreach($list as $row){
+//                $timestamp = $row['time_stamp'];
+//                $success_series_data[$timestamp]  = "[".($timestamp*1000).",{$row['success_count']}]";
+//                $fail_series_data[$timestamp]     = "[".($timestamp*1000).",{$row['fail_count']}]";
+//                if($row['success_count'] > 0){
+//                    $success_time_series_data[$timestamp] = "[".($timestamp*1000).",".($row['success_cost_time']/$row['success_count'])."]";
+//                }
+//                if($row['fail_count'] > 0){
+//                    $fail_time_series_data[$timestamp]    = "[".($timestamp*1000).",".($row['fail_cost_time']/$row['fail_count'])."]";
+//                }
+//            }
+//            for($i = $start_timestamp; $i < $end_timestamp; $i += 60){
+//                if(!isset($success_series_data[$i])){
+//                    $fail_series_data[$i] = "[".($i*1000).",0]";
+//                    $fail_time_series_data[$i]    = "[".($i*1000).",0]";
+//                }
+//            }
 
             ksort($success_series_data);
             ksort($fail_series_data);
