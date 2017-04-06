@@ -258,7 +258,7 @@ class StatisticsWorker
                     //$this->log('onTimer allplatform ['.$key.'<-->'.date('Y-m-d H:i:s',$tmp_timestamp).'] is not time to save');
                 }
             } elseif($key_prefix == 'second'){
-                //todo 可以分开写个7秒左右的定时器 一遍更快的回收无用的key
+                //todo 可以分开写个7秒左右的定时器 以便更快的回收无用的key
                 $tmp_timestamp = substr($key,7);
                 if((time() - $tmp_timestamp) >= 7) {
                     array_push($overdueKeys,$key);

@@ -31,7 +31,8 @@ class Rpc
                 $uriAddress = $this->uriInfo;
             }
 
-            $userName = $uriAddress['user'];
+            //todo 此处需要添加校验 方便业务查找访问来源.
+            $userName = isset($uriAddress['user']) ? $uriAddress['user'] : '';
             $sendData = array('user'=>$userName,'class'=>$this->className,'method'=>$method,'param_array'=>$arguments);
 
             if(extension_loaded('swoole')){

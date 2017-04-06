@@ -146,4 +146,14 @@
         </script>
 
     </div>
+    <table class="table table-hover table-condensed table-bordered">
+        <thead>
+        <tr>
+            <th>时间</th><th>调用总数</th><th>平均耗时</th><th>成功调用总数</th><th>成功平均耗时</th><th>失败调用总数</th><th>失败平均耗时</th><th>成功率</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php //echo $table_data;?>
+        </tbody>
+    </table>
 </div>
