@@ -106,15 +106,15 @@ class Index extends \Framework\CController
             $table_data .= "\n<tr $html_class>
                        <td>".date('Y-m-d H:i:s',$date)."</td>
                        <td>".$row['total_count']."</td>
-                        <td>".(($row['success_cost_time']+$row['fail_cost_time'])/$row['total_count'])."</td>
+                        <td>".$row['total_count'] <= 0 ? 0 : round(($row['success_cost_time']+$row['fail_cost_time'])/$row['total_count'],6)."</td>
                         <td>{$row['success_count']}</td>
-                        <td>".($row['success_cost_time']/$row['success_count'])."</td>
+                        <td>".$row['success_count']<=0 ? 0 : round($row['success_cost_time']/$row['success_count'],6)."</td>
                         <td>{$row['fail_count']}</td>
-                        <td>".($row['fail_cost_time']/$row['fail_count'])."</td>
+                        <td>".$row['fail_count'] <=0 ? 0 : round($row['fail_cost_time']/$row['fail_count'],6)."</td>
                         <td>{$precent}%</td>
                     </tr> ";
         }
-        
+
         foreach($success_series_data as $five_minute_time => $row){
             $success_series_data[$five_minute_time]        = "[".($five_minute_time*1000).",{$row}]";
         }
