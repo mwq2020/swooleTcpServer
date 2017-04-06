@@ -57,6 +57,7 @@ class Index extends \Framework\CController
         */
 
         //整理成每5分钟数据，看起来比较清晰些
+        $table_data = '';
         foreach($list as $row){
             $five_minute_time = $this->formatTimeIn5($row['time_stamp']);
             if(isset($success_series_data[$five_minute_time])){
@@ -70,6 +71,28 @@ class Index extends \Framework\CController
                 $success_time_series_data[$five_minute_time]   = $row['success_cost_time'];
                 $fail_time_series_data[$five_minute_time]      = $row['fail_cost_time'];
             }
+
+            $precent = ($row['success_count']+$row['fail_count']) > 0 ? round(($row['success_count']/($row['success_count']+$row['fail_count']))*100) : 0;
+            $html_class = 'class="danger"';
+            if(($row['success_count']+$row['fail_count']) == 0) {
+                $html_class = '';
+            } elseif($precent>=99.99)  {
+                $html_class = 'class="success"';
+            } elseif($precent>=99) {
+                $html_class = '';
+            } elseif($precent>=98) {
+                $html_class = 'class="warning"';
+            }
+            $table_data .= "\n<tr $html_class>
+                       <td>{$five_minute_time}</td>
+                       <td>".($row['success_count']+$row['fail_count'])."</td>
+                        <td> {$row['success_count']}</td>
+                        <td>{$row['success_count']}</td>
+                        <td>{$row['success_cost_time']}</td>
+                        <td>{$row['fail_count']}</td>
+                        <td>{$row['fail_cost_time']}</td>
+                        <td>{$precent}%</td>
+                    </tr> ";
         }
 
         foreach($success_series_data as $five_minute_time => $row){
@@ -84,6 +107,7 @@ class Index extends \Framework\CController
         foreach($fail_time_series_data as $five_minute_time => $row){
             $fail_time_series_data[$five_minute_time]        = "[".($five_minute_time*1000).",{$row}]";
         }
+
 
         for($i = $start_timestamp; $i < $end_timestamp; $i += 300){
             if(!isset($success_series_data[$i])){
@@ -107,6 +131,7 @@ class Index extends \Framework\CController
         $this->assign('fail_series_data',$fail_series_data);
         $this->assign('success_time_series_data',$success_time_series_data);
         $this->assign('fail_time_series_data',$fail_time_series_data);
+        $this->assign('table_data',$table_data);
         return $this->display('index');
     }
 

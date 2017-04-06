@@ -153,7 +153,7 @@
         </tr>
         </thead>
         <tbody>
-        <?php //echo $table_data;?>
+        <?php echo $table_data;?>
         </tbody>
     </table>
 </div>
