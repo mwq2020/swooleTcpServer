@@ -58,6 +58,7 @@ class Index extends \Framework\CController
 
         //整理成每5分钟数据，看起来比较清晰些
         $table_data = '';
+        $list_data_5 = array();//每5分钟的数据统计
         foreach($list as $row){
             $five_minute_time = $this->formatTimeIn5($row['time_stamp']);
             if(isset($success_series_data[$five_minute_time])){
@@ -72,9 +73,28 @@ class Index extends \Framework\CController
                 $fail_time_series_data[$five_minute_time]      = $row['fail_cost_time'];
             }
 
-            $precent = ($row['success_count']+$row['fail_count']) > 0 ? round(($row['success_count']/($row['success_count']+$row['fail_count']))*100) : 0;
+            if(isset($list_data_5[$five_minute_time])){
+                $list_data_5[$five_minute_time]['total_count']          += ($row['success_count']+$row['fail_count']);
+                $list_data_5[$five_minute_time]['success_count']        += $row['success_count'];
+                $list_data_5[$five_minute_time]['fail_count']           += $row['fail_count'];
+                $list_data_5[$five_minute_time]['success_cost_time']    += $row['success_cost_time'];
+                $list_data_5[$five_minute_time]['fail_cost_time']       += $row['fail_cost_time'];
+            } else {
+                $list_data_5[$five_minute_time]['total_count']          = ($row['success_count']+$row['fail_count']);
+                $list_data_5[$five_minute_time]['success_count']        = $row['success_count'];
+                $list_data_5[$five_minute_time]['fail_count']           = $row['fail_count'];
+                $list_data_5[$five_minute_time]['success_cost_time']    = $row['success_cost_time'];
+                $list_data_5[$five_minute_time]['fail_cost_time']       = $row['fail_cost_time'];
+            }
+
+
+        }
+
+        //整理表格统计数据
+        foreach($list_data_5 as $date => $row){
+            $precent = ($row['total_count']) > 0 ? round(($row['success_count']/($row['total_count']))*100) : 0;
             $html_class = 'class="danger"';
-            if(($row['success_count']+$row['fail_count']) == 0) {
+            if($row['total_count'] == 0) {
                 $html_class = '';
             } elseif($precent>=99.99)  {
                 $html_class = 'class="success"';
@@ -84,17 +104,17 @@ class Index extends \Framework\CController
                 $html_class = 'class="warning"';
             }
             $table_data .= "\n<tr $html_class>
-                       <td>{$five_minute_time}</td>
-                       <td>".($row['success_count']+$row['fail_count'])."</td>
-                        <td> {$row['success_count']}</td>
+                       <td>".date('Y-m-d H:i:s',$date)."</td>
+                       <td>".$row['total_count']."</td>
+                        <td>".(($row['success_cost_time']+$row['fail_cost_time'])/$row['total_count'])."</td>
                         <td>{$row['success_count']}</td>
-                        <td>{$row['success_cost_time']}</td>
+                        <td>".($row['success_cost_time']/$row['success_count'])."</td>
                         <td>{$row['fail_count']}</td>
-                        <td>{$row['fail_cost_time']}</td>
+                        <td>".($row['fail_cost_time']/$row['fail_count'])."</td>
                         <td>{$precent}%</td>
                     </tr> ";
         }
-
+        
         foreach($success_series_data as $five_minute_time => $row){
             $success_series_data[$five_minute_time]        = "[".($five_minute_time*1000).",{$row}]";
         }
@@ -107,7 +127,6 @@ class Index extends \Framework\CController
         foreach($fail_time_series_data as $five_minute_time => $row){
             $fail_time_series_data[$five_minute_time]        = "[".($five_minute_time*1000).",{$row}]";
         }
-
 
         for($i = $start_timestamp; $i < $end_timestamp; $i += 300){
             if(!isset($success_series_data[$i])){
