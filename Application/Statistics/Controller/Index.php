@@ -57,7 +57,6 @@ class Index extends \Framework\CController
         */
 
         //整理成每5分钟数据，看起来比较清晰些
-        $table_data = '';
         $list_data_5 = array();//每5分钟的数据统计
         foreach($list as $row){
             $five_minute_time = $this->formatTimeIn5($row['time_stamp']);
@@ -86,11 +85,10 @@ class Index extends \Framework\CController
                 $list_data_5[$five_minute_time]['success_cost_time']    = $row['success_cost_time'];
                 $list_data_5[$five_minute_time]['fail_cost_time']       = $row['fail_cost_time'];
             }
-
-
         }
 
         //整理表格统计数据
+        $table_data = '';
         foreach($list_data_5 as $date => $row){
             $precent = ($row['total_count']) > 0 ? round(($row['success_count']/($row['total_count']))*100) : 0;
             $html_class = 'class="danger"';
@@ -106,11 +104,11 @@ class Index extends \Framework\CController
             $table_data .= "\n<tr $html_class>
                        <td>".date('Y-m-d H:i:s',$date)."</td>
                        <td>".$row['total_count']."</td>
-                        <td>".$row['total_count'] <= 0 ? 0 : round(($row['success_cost_time']+$row['fail_cost_time'])/$row['total_count'],6)."</td>
+                        <td>".($row['total_count'] <= 0 ? 0 : round(($row['success_cost_time']+$row['fail_cost_time'])/$row['total_count'],6))."</td>
                         <td>{$row['success_count']}</td>
-                        <td>".$row['success_count']<=0 ? 0 : round($row['success_cost_time']/$row['success_count'],6)."</td>
+                        <td>".($row['success_count']<=0 ? 0 : round($row['success_cost_time']/$row['success_count'],6))."</td>
                         <td>{$row['fail_count']}</td>
-                        <td>".$row['fail_count'] <=0 ? 0 : round($row['fail_cost_time']/$row['fail_count'],6)."</td>
+                        <td>".($row['fail_count'] <= 0 ? 0 : round($row['fail_cost_time']/$row['fail_count'],6))."</td>
                         <td>{$precent}%</td>
                     </tr> ";
         }
