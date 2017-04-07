@@ -102,7 +102,7 @@ class Index extends \Framework\CController
                 $html_class = 'class="warning"';
             }
             $table_data .= "\n<tr $html_class>
-                       <td>".date('Y-m-d H:i:s',$date)."</td>
+                       <td>".date('H:i:s',$date-300) .'~'.date('H:i:s',$date-1)."</td>
                        <td>".$row['total_count']."</td>
                         <td>".($row['total_count'] <= 0 ? 0 : number_format(($row['success_cost_time']+$row['fail_cost_time'])/$row['total_count'],6))."</td>
                         <td>{$row['success_count']}</td>
