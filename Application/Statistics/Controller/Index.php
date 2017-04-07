@@ -90,7 +90,7 @@ class Index extends \Framework\CController
         //整理表格统计数据
         $table_data = '';
         foreach($list_data_5 as $date => $row){
-            $precent = ($row['total_count']) > 0 ? round(($row['success_count']/($row['total_count']))*100) : 0;
+            $precent = ($row['total_count']) > 0 ? number_format(($row['success_count']/($row['total_count']))*100,2) : 0;
             $html_class = 'class="danger"';
             if($row['total_count'] == 0) {
                 $html_class = '';
@@ -104,11 +104,11 @@ class Index extends \Framework\CController
             $table_data .= "\n<tr $html_class>
                        <td>".date('Y-m-d H:i:s',$date)."</td>
                        <td>".$row['total_count']."</td>
-                        <td>".($row['total_count'] <= 0 ? 0 : round(($row['success_cost_time']+$row['fail_cost_time'])/$row['total_count'],6))."</td>
+                        <td>".($row['total_count'] <= 0 ? 0 : number_format(($row['success_cost_time']+$row['fail_cost_time'])/$row['total_count'],6))."</td>
                         <td>{$row['success_count']}</td>
-                        <td>".($row['success_count']<=0 ? 0 : round($row['success_cost_time']/$row['success_count'],6))."</td>
+                        <td>".($row['success_count']<=0 ? 0 : number_format($row['success_cost_time']/$row['success_count'],6))."</td>
                         <td>{$row['fail_count']}</td>
-                        <td>".($row['fail_count'] <= 0 ? 0 : round($row['fail_cost_time']/$row['fail_count'],6))."</td>
+                        <td>".($row['fail_count'] <= 0 ? 0 : number_format($row['fail_cost_time']/$row['fail_count'],6))."</td>
                         <td>{$precent}%</td>
                     </tr> ";
         }
